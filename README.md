@@ -22,6 +22,30 @@ http://jordan-wright.com/blog/2015/09/30/how-to-download-a-list-of-all-registere
     * unclear
 
 
+
+
+## Requirement
+https://github.com/drkjam/netaddr
+https://www.rabbitmq.com/install-debian.html
+https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-repositories.html
+
+## V1 Writeup
+put shit here
+
+
+## V2 TODO
+https://www.digitalocean.com/community/tutorials/how-to-install-elasticsearch-logstash-and-kibana-4-on-centos-7 - logging thing
+http://www.celeryproject.org/ - queueing thingy
+kafka  - apache queue 
+https://www.unbound.net/ - speed up DNS
++ apt-get install unbound unbound-host
++ http://munin-monitoring.org/
+Make domainParser put things into queue
+Make a domainResolver script read from queue and look up DNS
+
+
+
+
        
 
 
