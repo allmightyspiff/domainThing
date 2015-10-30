@@ -8,6 +8,7 @@ import pika
 import json
 from datetime import datetime, timedelta
 import logging as logger
+import time
 
 
 class domainReader():
@@ -60,15 +61,19 @@ class domainReader():
 
                 zoneObject = {
                     'created': nownow.isoformat(),
-                    'domain' : lastZone
+                    'domain' : lastZone,
+                    'domainFullZone': zone.group(0)
                 }
                 workQueue.append(zoneObject)
                 queueLength = queueLength + 1
 
-            if  queueLength > 10:
+            if  queueLength > 25:
                 self.uploadQueue(workQueue)
                 queueLength = 0
                 workQueue = []
+                # Sleeping to not overload queue
+                # need to replace with something more aware
+                time.sleep(3)
         self.uploadQueue(workQueue)
         nownow = datetime.now()
         print("%s - Finished with %s" % (nownow.isoformat(),filename))

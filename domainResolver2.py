@@ -3,8 +3,10 @@ import pika
 import json
 import socket
 from datetime import datetime, timedelta
+from pprint import pprint as pp
 import time
 import logging as logger
+from multiprocessing import Process, Queue, current_process, active_children
 
 
 def getZoneIp(zone):
@@ -20,34 +22,43 @@ def getZoneIp(zone):
         # print zone + " NOT FOUND"
     return ip
 
+def processDomain(domain, workQueue):
+    start = datetime.now()
+    thisZone = domain['domain']
+    
+
+    zoneIp = getZoneIp(thisZone)
+    if zoneIp is None:
+        zoneIp = getZoneIp("www." + thisZone)
+        domain['domain'] = "www." + thisZone
+    if zoneIp is None:
+        zoneIp = "UNRESOLVEABLE"
+
+    nownow = datetime.now()
+    elapsed = nownow - start
+    domain['ip'] = zoneIp
+    domain['resolveTime'] = elapsed.total_seconds()
+    domain['ipCreateTime'] = nownow.isoformat()
+    print("%s -  %s - %s" % (nownow.isoformat(), thisZone, zoneIp))
+    workQueue.put(domain)
+    return True
 
 def callback(ch, method, properties, body):
     domains = json.loads(body)
-    workQueue = []
+    workQueue = Queue()
+    fakeQueue = []
     for domain in domains:
-        start = datetime.now()
-        thisZone = domain['domain']
+        Process(target=processDomain, args=(domain, workQueue)).start()
+
+    for x in range(len(domains)):
+        domain = workQueue.get()
         
-
-        zoneIp = getZoneIp(thisZone)
-        if zoneIp is None:
-            zoneIp = getZoneIp("www." + thisZone)
-            domain['domain'] = "www." + thisZone
-        if zoneIp is None:
-            zoneIp = "UNRESOLVEABLE"
-
-        nownow = datetime.now()
-        elapsed = nownow - start
-        domain['ip'] = zoneIp
-        domain['resolveTime'] = elapsed.total_seconds()
-        domain['ipCreateTime'] = nownow.isoformat()
-        workQueue.append(domain)
-        print("%s -  %s - %s" % (nownow.isoformat(), thisZone, zoneIp))
-
+        fakeQueue.append(domain)
     nownow = datetime.now()
     print("%s - uploading to domains" % nownow.isoformat())
-
-    message = json.dumps(workQueue)
+    active_children()
+    message = json.dumps(fakeQueue)
+    pp(message)
     ch.basic_publish(exchange='',routing_key='domains',body=message)
     nownow = datetime.now()
     ch.basic_ack(delivery_tag = method.delivery_tag)

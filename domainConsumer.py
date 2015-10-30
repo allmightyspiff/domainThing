@@ -26,50 +26,38 @@ config = {
   'raise_on_warnings': True,
 }
 
-es = elasticsearch.Elasticsearch([{'host':'173.193.23.40'}])  
+es = elasticsearch.Elasticsearch([{'host':'10.37.82.159'}])  
 
 sql = mysql.connector.connect(**config)
 cursor = sql.cursor()
-query = ("SELECT ip from ip_address_unique WHERE ip = '%s'")
+query = ("SELECT ip from ip_address_unique WHERE ip = %(int_ip)s LIMIT 1")
 
 print ' [*] Waiting for messages. To exit press CTRL+C'
 
 def callback(ch, method, properties, body):
     domains = json.loads(body)
     final_domain = []
-    # print " [x] Received %r" % (body,)
     for domain in domains:
-        if domain['ip'] == "UNRESOLVEABLE":
-            nownow = datetime.now()
-            domain['lookupTime'] = 0
-            domain['finalStartTime'] = nownow.isoformat()
-            domain['softlayer'] = 0
-            es.index(index="domain-final",doc_type="blog",body=json.dumps(domain))
-            continue
 
         start = datetime.now()
-        ip = IPAddress(domain['ip'])
-        cursor.execute(query,ip.value)
+        try:
+            ip = IPAddress(domain['ip'])
+        except:
+            ip = IPAddress('0.0.0.0')
+
+        cursor.execute(query,{ 'int_ip' : ip.value})
+        # Need to fetch the results or else an exception gets thrown
+        results = cursor.fetchall()
         print domain['domain'] + " => " + domain['ip'] + " - " + str(ip.value)
         nownow = datetime.now()
         elapsed = nownow - start
         domain['lookupTime'] = elapsed.total_seconds()
         domain['finalStartTime'] = nownow.isoformat()
         if cursor.rowcount > 0:
-            print cursor.rowcount + " Rows Found"
             domain['softlayer'] = 1
         else:
             domain['softlayer'] = 0
 
-        # Going through the cursor is required for some reason
-        # Need to just remove this i think
-        for result in cursor:
-            print result
-
-            if result == domain['ip']:
-                print "SoftLayer"
-            else:
-                print "404"
         es.index(index="domain-final",doc_type="blog",body=json.dumps(domain))
 
     print("Jobs done")
