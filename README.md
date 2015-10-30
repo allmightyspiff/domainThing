@@ -47,12 +47,9 @@ Make a domainResolver script read from queue and look up DNS
 Upgrade elastic search to 2.0
 https://www.elastic.co/downloads/shield
 get domainParser to mark what it did last somehow with rate limiting
+Put passwords in a config
 
 
-# ES Crashed
-1446061837.57,80080361,1231878,162.21/s
-1446061898.04,64075052,985608,-270859.65/s
-+16005309,+246270
 
 
 
