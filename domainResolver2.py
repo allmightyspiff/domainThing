@@ -6,49 +6,68 @@ from datetime import datetime, timedelta
 from pprint import pprint as pp
 import time
 import logging as logger
-from multiprocessing import Process, Queue, current_process, active_children
+#from multiprocessing import Process, Queue, current_process, active_children
+import Queue
+import threading
 
 
-def getZoneIp(zone):
-    ip = None
-    try:
-        query_result = socket.getaddrinfo(zone,'80')
-        for result in query_result:
-            ip = result[4][0]
-            # print ip
-        # pp(query_result)
-    except socket.gaierror:
+class domainThread(threading.Thread):
+
+    def __init__(self, domain, queue, threadId):
+        threading.Thread.__init__(self)
+        self.domain = domain
+        self.queue = queue
+        self.threadId = threadId
+
+    def run(self):
+        self.processDomain(self.domain,self.queue)
+
+    def getZoneIp(self,zone):
+        ip = None
+        try:
+            query_result = socket.getaddrinfo(zone,'80')
+            for result in query_result:
+                ip = result[4][0]
+                # print ip
+            # pp(query_result)
+        except socket.gaierror:
+            return ip
+            # print zone + " NOT FOUND"
+        except:
+            # something went WILDLY wrong
+            return ip
         return ip
-        # print zone + " NOT FOUND"
-    return ip
 
-def processDomain(domain, workQueue):
-    start = datetime.now()
-    thisZone = domain['domain']
-    
+    def processDomain(self,domain, workQueue):
+        start = datetime.now()
+        thisZone = domain['domain']
+        
+        zoneIp = self.getZoneIp(thisZone)
+        if zoneIp is None:
+            zoneIp = self.getZoneIp("www." + thisZone)
+            domain['domain'] = "www." + thisZone
+        if zoneIp is None:
+            zoneIp = "UNRESOLVEABLE"
 
-    zoneIp = getZoneIp(thisZone)
-    if zoneIp is None:
-        zoneIp = getZoneIp("www." + thisZone)
-        domain['domain'] = "www." + thisZone
-    if zoneIp is None:
-        zoneIp = "UNRESOLVEABLE"
-
-    nownow = datetime.now()
-    elapsed = nownow - start
-    domain['ip'] = zoneIp
-    domain['resolveTime'] = elapsed.total_seconds()
-    domain['ipCreateTime'] = nownow.isoformat()
-    print("%s -  %s - %s" % (nownow.isoformat(), thisZone, zoneIp))
-    workQueue.put(domain)
-    return True
+        nownow = datetime.now()
+        elapsed = nownow - start
+        domain['ip'] = zoneIp
+        domain['resolveTime'] = elapsed.total_seconds()
+        domain['ipCreateTime'] = nownow.isoformat()
+        print("%s -  %s - %s - %s" % (nownow.isoformat(), thisZone, zoneIp, self.threadId))
+        workQueue.put(domain)
+        return True
 
 def callback(ch, method, properties, body):
     domains = json.loads(body)
-    workQueue = Queue()
+    workQueue = Queue.Queue()
     fakeQueue = []
+    threadId = 0
     for domain in domains:
-        Process(target=processDomain, args=(domain, workQueue)).start()
+        thread = domainThread(domain,workQueue, threadId)
+        thread.start()
+        threadId = threadId + 1 
+        # Process(target=processDomain, args=(domain, workQueue)).start()
 
     for x in range(len(domains)):
         domain = workQueue.get()
@@ -56,9 +75,9 @@ def callback(ch, method, properties, body):
         fakeQueue.append(domain)
     nownow = datetime.now()
     print("%s - uploading to domains" % nownow.isoformat())
-    active_children()
+    # active_children()
     message = json.dumps(fakeQueue)
-    pp(message)
+    # pp(message)
     ch.basic_publish(exchange='',routing_key='domains',body=message)
     nownow = datetime.now()
     ch.basic_ack(delivery_tag = method.delivery_tag)
@@ -82,7 +101,8 @@ while True:
                    credentials=credentials,
                    channel_max=3,
                    heartbeat_interval=500,
-                   connection_attempts=3
+                   connection_attempts=3,
+                   socket_timeout=15
             )
     connection = pika.BlockingConnection(params)
 

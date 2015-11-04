@@ -18,7 +18,7 @@ class domainReader():
         logger.info("Starting up")
         credentials = pika.PlainCredentials('domainThing', 'thisDomainThingy')
         connection = pika.BlockingConnection(pika.ConnectionParameters(
-                       '173.193.23.40', 5672, '/', credentials))
+                       '173.193.23.40', 5672, '/', credentials, socket_timeout=15))
         self.channel = connection.channel()
         self.channel.queue_declare(queue='domain-queue')
 
@@ -98,6 +98,6 @@ if __name__ == "__main__":
     regexVerisign = re.compile('(\S+)(\s+NS\s+)(\S*)')
     domainReader = domainReader()
     domainReader.getZoneFiles(regexVerisign, "./zones/verisign")
-    domainReader.getZoneFiles(regexIcaan, "./zones/icaan")
+    # domainReader.getZoneFiles(regexIcaan, "./zones/icaan")
 
 

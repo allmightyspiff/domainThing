@@ -51,6 +51,11 @@ Put passwords in a config
 
 
 
+# SALT-MASTER setup
+apt-get install python-pip
+curl -L https://bootstrap.saltstack.com -o install_salt.sh
+sh install_salt.sh -M -P
+
 
 
        
