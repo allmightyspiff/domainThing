@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from pprint import pprint as pp
 import time
 import logging as logger
-#from multiprocessing import Process, Queue, current_process, active_children
+from multiprocessing import Process, current_process, active_children
 import Queue
 import threading
 
@@ -67,7 +67,6 @@ def callback(ch, method, properties, body):
         thread = domainThread(domain,workQueue, threadId)
         thread.start()
         threadId = threadId + 1 
-        # Process(target=processDomain, args=(domain, workQueue)).start()
 
     for x in range(len(domains)):
         domain = workQueue.get()
@@ -75,49 +74,53 @@ def callback(ch, method, properties, body):
         fakeQueue.append(domain)
     nownow = datetime.now()
     print("%s - uploading to domains" % nownow.isoformat())
-    # active_children()
     message = json.dumps(fakeQueue)
-    # pp(message)
     ch.basic_publish(exchange='',routing_key='domains',body=message)
     nownow = datetime.now()
     ch.basic_ack(delivery_tag = method.delivery_tag)
     print("%s - Waiting" % nownow.isoformat())
 
+def main(pid):
+    logger.info("%s Starting up", pid)
+    start = datetime.now()
+    # RabbitMQ likes to disconnect us. Might need to add a exit counter
+    # or something
+    while True:
+        credentials = pika.PlainCredentials('domainThing', 'thisDomainThingy')
+        params = pika.ConnectionParameters(
+                       host='173.193.23.40',
+                       port=5672,
+                       virtual_host='/',
+                       credentials=credentials,
+                       channel_max=6,
+                       heartbeat_interval=500,
+                       connection_attempts=3,
+                       socket_timeout=15
+                )
+        connection = pika.BlockingConnection(params)
+
+        channel = connection.channel()
+        channel.queue_declare(queue='domains')
+        channel.queue_declare(queue='domain-queue')
+        channel.basic_consume(callback, queue='domain-queue')
+        channel.basic_qos(prefetch_count=1)
+
+        try:
+            channel.start_consuming()
+            connection.close()
+        except pika.exceptions.ConnectionClosed:
+            nownow = datetime.now()
+            print("%s - Retry Connection" % nownow.isoformat())
+            continue
+        time.sleep(1)
+
+if __name__ == "__main__":
+    logger.basicConfig(filename="resolver.log", format='%(asctime)s, %(message)s' ,level=logger.INFO)
+    x = 0
+    while x < 5:
+        x = x+1;
+        Process(target=main,args=(x,)).start()
+        time.sleep(5)
 
 
-logger.info("Starting up")
-start = datetime.now()
-print ' [*] Waiting for messages. To exit press CTRL+C'
-
-# RabbitMQ likes to disconnect us. Might need to add a exit counter
-# or something
-while True:
-
-    credentials = pika.PlainCredentials('domainThing', 'thisDomainThingy')
-    params = pika.ConnectionParameters(
-                   host='173.193.23.40',
-                   port=5672,
-                   virtual_host='/',
-                   credentials=credentials,
-                   channel_max=3,
-                   heartbeat_interval=500,
-                   connection_attempts=3,
-                   socket_timeout=15
-            )
-    connection = pika.BlockingConnection(params)
-
-    channel = connection.channel()
-    channel.queue_declare(queue='domains')
-    channel.queue_declare(queue='domain-queue')
-    channel.basic_consume(callback, queue='domain-queue')
-    channel.basic_qos(prefetch_count=1)
-
-    try:
-        channel.start_consuming()
-        connection.close()
-    except pika.exceptions.ConnectionClosed:
-        nownow = datetime.now()
-        print("%s - Retry Connection" % nownow.isoformat())
-        continue
-    time.sleep(1)
 

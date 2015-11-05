@@ -30,7 +30,6 @@ class domainConsumer():
         sql = mysql.connector.connect(**config)
         cursor = sql.cursor()
         query = ("SELECT ip from ip_address_unique WHERE ip = %(int_ip)s LIMIT 1")
-        print ' [*] Waiting for messages. To exit press CTRL+C'
         channel.basic_consume(self.callback,queue='domains')
         channel.start_consuming()
 
@@ -48,7 +47,8 @@ class domainConsumer():
             cursor.execute(query,{ 'int_ip' : ip.value})
             # Need to fetch the results or else an exception gets thrown
             results = cursor.fetchall()
-            print domain['domain'] + " => " + domain['ip'] + " - " + str(ip.value)
+            logger.info("%s, %s, %s"  % (domain['domain'], domain['ip'], str(ip.value)))
+
             nownow = datetime.now()
             elapsed = nownow - start
             domain['lookupTime'] = elapsed.total_seconds()
@@ -60,10 +60,14 @@ class domainConsumer():
 
             es.index(index="domain-final",doc_type="blog",body=json.dumps(domain))
 
-        print("Jobs done")
-        # pp(domains)
         ch.basic_ack(delivery_tag = method.delivery_tag)
 
-
+if __name__ == "__main__":
+    logger.basicConfig(filename="parser.log", format='%(asctime)s, %(message)s' ,level=logger.INFO)
+    try:
+        consumer = domainConsumer()
+        consumer.main()
+    except BaseException as e:
+        logger.exception(str(e))
 
 
