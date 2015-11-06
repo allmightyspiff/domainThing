@@ -5,14 +5,14 @@ from netaddr import *
 from pprint import pprint as pp
 import mysql.connector
 from datetime import datetime
-import configParser
+import configparser as ConfigParser
 
 
 class subnetToSql():
 
     def __init__(self):
 
-        configFile = '/Users/christopher/Code/domainThing/config.cfg'
+        configFile = './config.cfg'
         config = ConfigParser.ConfigParser()
         config.read(configFile)
 
@@ -20,8 +20,7 @@ class subnetToSql():
           'user': config.get('mysql','user'),
           'password': config.get('mysql','password'),
           'host': config.get('mysql','host'),
-          'database': config.get('mysql','database'),
-          'raise_on_warnings': config.get('mysql','raise_on_warnings')
+          'database': config.get('mysql','database')
         }
 
         self.subnetFile = config.get('subnetToSql','file')
