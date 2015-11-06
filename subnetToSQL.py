@@ -7,6 +7,11 @@ import mysql.connector
 from datetime import datetime
 import configparser as ConfigParser
 
+"""
+This script is pretty lazy, and will just add ips all day.
+Uses mysql at the end to actually make sure each record is only 
+in the db once.
+"""
 
 class subnetToSql():
 
@@ -62,6 +67,10 @@ class subnetToSql():
                 # pp(ip_array)
                 self.cursor.executemany(add_ip,ip_array)
                 self.sql.commit()
+
+        print("RUNNING: SELECT DISTINCT * INTO ip_address_unique FROM ip_address")
+        make_unique = ("SELECT DISTINCT * INTO ip_address_unique FROM ip_address")
+        self.cursor.execute(make_unique)
 
 
 if __name__ == "__main__":
