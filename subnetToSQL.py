@@ -71,6 +71,7 @@ class subnetToSql():
         print("RUNNING: SELECT DISTINCT * INTO ip_address_unique FROM ip_address")
         make_unique = ("SELECT DISTINCT * INTO ip_address_unique FROM ip_address")
         self.cursor.execute(make_unique)
+        self.sql.commit()
 
 
 if __name__ == "__main__":
