@@ -25,7 +25,7 @@ class subnetToSql():
 
         self.subnetFile = config.get('subnetToSql','file')
         self.sql = mysql.connector.connect(**my_config)
-        self.cursor = sql.cursor()
+        self.cursor = self.sql.cursor()
         add_ip = ("INSERT INTO ip_address (ip) VALUES (%s)")
 
     def __exit__(self):
@@ -53,15 +53,15 @@ class subnetToSql():
                     ip_count = ip_count + 1
                     if ip_count > 1000:
                         print "INSERTING 1000 records"
-                        cursor.executemany(add_ip,ip_array)
-                        sql.commit()  
+                        self.cursor.executemany(add_ip,ip_array)
+                        self.sql.commit()  
                         ip_count = 0
                         ip_array = []
                 print "INSERTING %s records" % ip_count
                 print time.strftime("%Y-%m-%d %H:%M:%S.%f")
                 # pp(ip_array)
-                cursor.executemany(add_ip,ip_array)
-                sql.commit()
+                self.cursor.executemany(add_ip,ip_array)
+                self.sql.commit()
 
 
 if __name__ == "__main__":
