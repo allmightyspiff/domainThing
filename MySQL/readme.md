@@ -15,5 +15,5 @@ create table ip_address_unique (
     primary key(`ip`)
     ) engine = innodb;
 
-SELECT DISTINCT * INTO ip_address_unique FROM ip_address;
+INSERT INTO ip_address_unique (ip) select distinct(ip) from ip_address;
 ```

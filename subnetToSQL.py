@@ -48,6 +48,7 @@ class subnetToSql():
             if matched:
                 subnet = IPNetwork(matched.group(1) + "/" + matched.group(2))
                 if subnet[0].is_private():
+                    print("Skipping private subnet")
                     continue
                 ip_array = []
                 ip_count = 0
@@ -68,8 +69,9 @@ class subnetToSql():
                 self.cursor.executemany(add_ip,ip_array)
                 self.sql.commit()
 
-        print("RUNNING: SELECT DISTINCT * INTO ip_address_unique FROM ip_address")
-        make_unique = ("SELECT DISTINCT * INTO ip_address_unique FROM ip_address")
+    def dedupe(self):
+        print("RUNNING: INSERT INTO ip_address_unique (ip) select distinct(ip) from ip_address;")
+        make_unique = "INSERT INTO ip_address_unique (ip) select distinct(ip) from ip_address;"
         self.cursor.execute(make_unique)
         self.sql.commit()
 
@@ -77,6 +79,7 @@ class subnetToSql():
 if __name__ == "__main__":
     main = subnetToSql()
     main.main()
+    main.dedupe()
 
 
 
