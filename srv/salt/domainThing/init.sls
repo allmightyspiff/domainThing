@@ -17,5 +17,5 @@ domainThing_conf:
     - name: '/domainThing/config.cfg'
     - source: salt://domainThing/config-template.cfg'
     - require:
-      - pkg: git_domainThing
+      - git: git_domainThing
     - mode: 644
