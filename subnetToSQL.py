@@ -31,13 +31,14 @@ class subnetToSql():
         self.subnetFile = config.get('subnetToSql','file')
         self.sql = mysql.connector.connect(**my_config)
         self.cursor = self.sql.cursor()
-        add_ip = ("INSERT INTO ip_address (ip) VALUES (%s)")
+        
 
     def __exit__(self):
         self.cursor.close()
         self.sql.close()
 
     def main(self):
+        add_ip = ("INSERT INTO ip_address (ip) VALUES (%s)")
         time = datetime.now()
         print time.strftime("%Y-%m-%d %H:%M:%S.%f")
         f = open(self.subnetFile,'r')
