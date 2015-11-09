@@ -10,24 +10,30 @@ import elasticsearch
 class domainConsumer():
 
     def main(self):
-        credentials = pika.PlainCredentials('domainThing', 'thisDomainThingy')
-        connection = pika.BlockingConnection(
-            pika.ConnectionParameters('173.193.23.40',5672,'/',credentials)
-        )
+        credentials = pika.PlainCredentials(
+                    config.get('rabbitmq','user'), 
+                    config.get('rabbitmq','password')
+                )
+        connection = pika.BlockingConnection(pika.ConnectionParameters(
+                    config.get('rabbitmq','host'), 
+                    config.get('rabbitmq','port'), 
+                    config.get('rabbitmq','vhost'), 
+                    credentials, 
+                    socket_timeout=15)
+                )
 
         channel = connection.channel()
         channel.queue_declare(queue='domains')
-        config = {
-          'user': 'domains',
-          'password': 'ThisistheDomains)(',
-          'host': '173.193.23.40',
-          'database': 'domainThing',
-          'raise_on_warnings': True,
+        my_config = {
+          'user': config.get('mysql','user'),
+          'password': config.get('mysql','password'),
+          'host': config.get('mysql','host'),
+          'database': config.get('mysql','database')
         }
 
-        es = elasticsearch.Elasticsearch([{'host':'10.37.82.159'}])  
+        es = elasticsearch.Elasticsearch([{'host':config.get('elasticsearch','host')}])  
 
-        sql = mysql.connector.connect(**config)
+        sql = mysql.connector.connect(**my_config)
         cursor = sql.cursor()
         query = ("SELECT ip from ip_address_unique WHERE ip = %(int_ip)s LIMIT 1")
         channel.basic_consume(self.callback,queue='domains')

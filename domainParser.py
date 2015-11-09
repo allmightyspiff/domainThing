@@ -9,17 +9,30 @@ import json
 from datetime import datetime, timedelta
 import logging as logger
 import time
+import configparser 
 
 
 class domainReader():
 
     def __init__(self):
         self.start = datetime.now()
-        
-        logger.info("domainRader Starting up")
-        credentials = pika.PlainCredentials('domainThing', 'thisDomainThingy')
+        configFile = './config.cfg'
+        config = ConfigParser.ConfigParser()
+        config.read(configFile)
+
+
+        logger.info("domainReader Starting up")
+        credentials = pika.PlainCredentials(
+                    config.get('rabbitmq','user'), 
+                    config.get('rabbitmq','password')
+                )
         connection = pika.BlockingConnection(pika.ConnectionParameters(
-                       '173.193.23.40', 5672, '/', credentials, socket_timeout=15))
+                    config.get('rabbitmq','host'), 
+                    config.get('rabbitmq','port'), 
+                    config.get('rabbitmq','vhost'), 
+                    credentials, 
+                    socket_timeout=15)
+                )
         self.channel = connection.channel()
         self.channel.queue_declare(queue='domain-queue')
 
@@ -61,10 +74,6 @@ class domainReader():
                 lastZone = thisZone
                 nownow = datetime.now()
 
-                # For Debugging
-                #elapsed = nownow - self.start
-                #print("%s -  %s" % (elapsed.total_seconds(), lastZone))
-
                 zoneObject = {
                     'created': nownow.isoformat(),
                     'domain' : lastZone,
@@ -80,35 +89,29 @@ class domainReader():
                 workQueue = []
                 # Sleeping to not overload queue
                 # need to replace with something more aware
-                time.sleep(3)
+                time.sleep(.1)
         self.uploadQueue(workQueue)
         nownow = datetime.now()
         logger.info("%s - Finished with %s" % (nownow.isoformat(),filename))
 
 
     def uploadQueue(self, workQueue):
-        # We reconnect on each upload because rabbitMQ likes to time out
-        # Connections seem fast enough though.
-
         nownow = datetime.now()
         message = json.dumps(workQueue)
-
-        # TODO: add bytes uploaded or something
-        # logger.info("%s - uploading to domain-queue" % nownow.isoformat())
-        self.channel.basic_publish(exchange='',
-              routing_key='domain-queue',
-              body=message)
+        self.channel.basic_publish(exchange='', routing_key='domain-queue', body=message)
 
 
 if __name__ == "__main__":
     logger.basicConfig(filename="parser.log", format='%(asctime)s, %(message)s' ,level=logger.INFO)
     regexIcaan = re.compile('(\S+)\.\s+(\d+)\s+in\s+ns\s+(\S*)')
     regexVerisign = re.compile('(\S+)(\s+NS\s+)(\S*)')
+    regexORG = re.compile('(\S+)\.(\s+NS\s+)(\S*)')
     try:
 
         domainReader = domainReader()
         domainReader.getZoneFiles(regexVerisign, "./zones/verisign")
-        # domainReader.getZoneFiles(regexIcaan, "./zones/icaan")
+        domainReader.getZoneFiles(regexIcaan, "./zones/icaan")
+        domainReader.getZoneFiles(regexORG, "./zones/org")
     except BaseException as e:
         logger.error("Exiting due to exception")
         logger.exception(str(e))

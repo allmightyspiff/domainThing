@@ -9,6 +9,7 @@ import logging as logger
 from multiprocessing import Process, current_process, active_children
 import Queue
 import threading
+import configparser
 
 
 class domainThread(threading.Thread):
@@ -18,6 +19,7 @@ class domainThread(threading.Thread):
         self.domain = domain
         self.queue = queue
         self.threadId = threadId
+        self.fqdn = socket.getfqdn()
 
     def run(self):
         self.processDomain(self.domain,self.queue)
@@ -28,8 +30,7 @@ class domainThread(threading.Thread):
             query_result = socket.getaddrinfo(zone,'80')
             for result in query_result:
                 ip = result[4][0]
-                # print ip
-            # pp(query_result)
+
         except socket.gaierror:
             return ip
             # print zone + " NOT FOUND"
@@ -54,7 +55,8 @@ class domainThread(threading.Thread):
         domain['ip'] = zoneIp
         domain['resolveTime'] = elapsed.total_seconds()
         domain['ipCreateTime'] = nownow.isoformat()
-        print("%s -  %s - %s - %s" % (nownow.isoformat(), thisZone, zoneIp, self.threadId))
+        domain['resolverHost'] = self.fqdn
+        logger.info("%s -  %s - %s - %s" % (nownow.isoformat(), thisZone, zoneIp, self.threadId))
         workQueue.put(domain)
         return True
 
@@ -73,29 +75,32 @@ def callback(ch, method, properties, body):
         
         fakeQueue.append(domain)
     nownow = datetime.now()
-    print("%s - uploading to domains" % nownow.isoformat())
+    logger.info("%s - uploading to domains" % nownow.isoformat())
     message = json.dumps(fakeQueue)
     ch.basic_publish(exchange='',routing_key='domains',body=message)
     nownow = datetime.now()
     ch.basic_ack(delivery_tag = method.delivery_tag)
-    print("%s - Waiting" % nownow.isoformat())
 
 def main(pid):
     logger.info("%s Starting up", pid)
     start = datetime.now()
-    # RabbitMQ likes to disconnect us. Might need to add a exit counter
-    # or something
+    configFile = './config.cfg'
+    config = ConfigParser.ConfigParser()
+    config.read(configFile)
     while True:
-        credentials = pika.PlainCredentials('domainThing', 'thisDomainThingy')
+        credentials = pika.PlainCredentials(
+                    config.get('rabbitmq','user'), 
+                    config.get('rabbitmq','password')
+                )
         params = pika.ConnectionParameters(
-                       host='173.193.23.40',
-                       port=5672,
-                       virtual_host='/',
-                       credentials=credentials,
-                       channel_max=6,
-                       heartbeat_interval=500,
-                       connection_attempts=3,
-                       socket_timeout=15
+                    config.get('rabbitmq','host'), 
+                    config.get('rabbitmq','port'), 
+                    config.get('rabbitmq','vhost'), 
+                    credentials=credentials,
+                    channel_max=6,
+                    heartbeat_interval=500,
+                    connection_attempts=3,
+                    socket_timeout=15
                 )
         connection = pika.BlockingConnection(params)
 
@@ -117,7 +122,11 @@ def main(pid):
 if __name__ == "__main__":
     logger.basicConfig(filename="resolver.log", format='%(asctime)s, %(message)s' ,level=logger.INFO)
     x = 0
-    while x < 5:
+    configFile = './config.cfg'
+    config = ConfigParser.ConfigParser()
+    config.read(configFile)
+    maxProcs = config.get('domainResolver','processes')
+    while x <= maxProcs:
         x = x+1;
         Process(target=main,args=(x,)).start()
         time.sleep(5)
