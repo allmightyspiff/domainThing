@@ -8,7 +8,6 @@ include:
 domainThing_db:
   mysql_database.present:
     - name: domainThing
-    - connection_host: '127.0.0.1'
     - connection_user: {{ mysql_root_user }}
     - connection_pass: {{ mysql_root_pass }}
 

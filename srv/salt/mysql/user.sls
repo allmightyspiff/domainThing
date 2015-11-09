@@ -11,7 +11,6 @@ domains:
   mysql_user.present:
     - host: localhost
     - password: {{ mysql_user_password }}
-    - connection_host: '127.0.0.1'
     - connection_user: {{ mysql_root_user }}
     - connection_pass: {{ mysql_root_pass }}
 
@@ -20,6 +19,5 @@ domainThing_grant:
     - grant: all privileges
     - database: domainThing.*
     - user: domains
-    - connection_host: '127.0.0.1'
     - connection_user: {{ mysql_root_user }}
     - connection_pass: {{ mysql_root_pass }}
