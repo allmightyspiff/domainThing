@@ -15,7 +15,7 @@ git_domainThing:
 domainThing_conf:
   file.managed:
     - name: '/domainThing/config.cfg'
-    - source: salt://domainThing/config-template.cfg'
+    - source: salt://domainThing/config-template.cfg
     - require:
       - git: git_domainThing
     - mode: 644
