@@ -25,3 +25,8 @@ rabbitmq:
           - '.*'
       - runas: root
 
+    config:
+        - username: domainThing
+        - password: thisDomainThingy
+
+
