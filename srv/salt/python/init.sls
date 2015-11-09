@@ -29,3 +29,8 @@ elasticsearch:
   pip.installed:
     - require:
       - pkg: python-pip
+
+configparser:
+  pip.installed:
+    - require:
+      - pkg: python-pip

@@ -2,6 +2,7 @@ base:
   '*':
     - vim
     - unbound
+    - domainThing
   'host:domain-master':
     - match: grain
     - python

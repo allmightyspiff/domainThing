@@ -1,4 +1,4 @@
-{% set kibana_wwwroot = '/domainThing/kibana' %}
+{% set kibana_wwwroot = '/opt/kibana' %}
 
 include:
   - java
