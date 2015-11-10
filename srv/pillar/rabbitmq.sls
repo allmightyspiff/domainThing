@@ -2,17 +2,7 @@ rabbitmq:
   plugin:
     rabbitmq_management:
       - enabled
-  policy:
-    rabbitmq_policy:
-      - name: HA
-      - pattern: '.*'
-      - definition: '{"ha-mode": "all"}'
-  vhost:
-    virtual_host:
-      - owner: rabbit_user
-      - conf: .*
-      - write: .*
-      - read: .*
+
   user:
     domainThing:
       - password: thisDomainThingy
@@ -25,8 +15,8 @@ rabbitmq:
           - '.*'
       - runas: root
 
-    config:
-        - username: domainThing
-        - password: thisDomainThingy
+  config:
+    - username: domainThing
+    - password: thisDomainThingy
 
 

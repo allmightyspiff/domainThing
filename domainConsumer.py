@@ -6,17 +6,21 @@ from netaddr import *
 from pprint import pprint as pp
 from datetime import datetime, timedelta
 import elasticsearch
+import configparser 
 
 class domainConsumer():
 
     def main(self):
+        configFile = './config.cfg'
+        config = configparser.ConfigParser()
+        config.read(configFile)
         credentials = pika.PlainCredentials(
                     config.get('rabbitmq','user'), 
                     config.get('rabbitmq','password')
                 )
         connection = pika.BlockingConnection(pika.ConnectionParameters(
                     config.get('rabbitmq','host'), 
-                    config.get('rabbitmq','port'), 
+                    config.getint('rabbitmq','port'), 
                     config.get('rabbitmq','vhost'), 
                     credentials, 
                     socket_timeout=15)

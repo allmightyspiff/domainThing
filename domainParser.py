@@ -17,7 +17,7 @@ class domainReader():
     def __init__(self):
         self.start = datetime.now()
         configFile = './config.cfg'
-        config = ConfigParser.ConfigParser()
+        config = configparser.ConfigParser()
         config.read(configFile)
 
 
