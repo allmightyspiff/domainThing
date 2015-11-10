@@ -9,3 +9,4 @@ base:
     - mysql
     - rabbitmq.latest
     - elk
+    - salt-cloud

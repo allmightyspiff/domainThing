@@ -3,4 +3,5 @@ base:
     - match: grain
     - mysql
     - rabbitmq
+    - softlayer
 

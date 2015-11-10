@@ -34,3 +34,8 @@ configparser:
   pip.installed:
     - require:
       - pkg: python-pip
+
+softlayer:
+  pip.installed:
+    - require:
+      - pkg: python-pip
