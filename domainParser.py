@@ -28,7 +28,7 @@ class domainReader():
                 )
         connection = pika.BlockingConnection(pika.ConnectionParameters(
                     config.get('rabbitmq','host'), 
-                    config.get('rabbitmq','port'), 
+                    config.getint('rabbitmq','port'), 
                     config.get('rabbitmq','vhost'), 
                     credentials, 
                     socket_timeout=15)
