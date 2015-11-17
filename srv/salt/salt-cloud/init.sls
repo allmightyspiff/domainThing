@@ -1,3 +1,6 @@
+include:
+  - salt-cloud.cloud-map
+
 apache-libcloud:
   pip.installed:
     - require:

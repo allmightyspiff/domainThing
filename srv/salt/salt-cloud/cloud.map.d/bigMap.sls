@@ -1,6 +1,6 @@
 {% for name,location in salt["pillar.get"]("cloud-profiles:datacenters", {}).items() %}
 {{ name }}:
-{% for number in range(location.number) %}
+  {% for number in range(location.number) %}
   - minion-{{ number }}:
       minion:
         mine_functions:
@@ -8,4 +8,5 @@
             interface: eth0
         grains:
           roles: worker
+  {% endfor %}
 {% endfor %}
