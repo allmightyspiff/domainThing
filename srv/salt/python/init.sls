@@ -46,7 +46,7 @@ softlayer:
 
 requests:
   pip.installed:
-    - name: requests =2.5.3
+    - name: requests ==2.5.3
     - require:
       - pkg: python-pip
 

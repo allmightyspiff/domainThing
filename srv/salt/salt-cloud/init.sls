@@ -23,6 +23,7 @@ etc_salt_provider:
 
 etc_salt_profiles:
   file.managed:
-    - name: /etc/salt/cloud.profiles.d/sjc01.conf
-    - source: salt://salt-cloud/cloud.profiles.d/sjc01.conf
+    - name: /etc/salt/cloud.profiles.d/gen00.conf
+    - template: jinja
+    - source: salt://salt-cloud/cloud.profiles.d/gen00.conf
     - makedirs: True
