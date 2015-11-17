@@ -56,36 +56,38 @@ class domainThread(threading.Thread):
         domain['resolveTime'] = elapsed.total_seconds()
         domain['ipCreateTime'] = nownow.isoformat()
         domain['resolverHost'] = self.fqdn
-        logger.info("%s -  %s - %s - %s" % (nownow.isoformat(), thisZone, zoneIp, self.threadId))
+        # logger.debug("%s -  %s - %s - %s" % (nownow.isoformat(), thisZone, zoneIp, self.threadId))
         workQueue.put(domain)
         return True
 
 def callback(ch, method, properties, body):
+    start = datetime.now()
     domains = json.loads(body)
     workQueue = Queue.Queue()
     fakeQueue = []
     threadId = 0
     for domain in domains:
+        threadId = threadId + 1 
         thread = domainThread(domain,workQueue, threadId)
         thread.start()
-        threadId = threadId + 1 
 
     for x in range(len(domains)):
         domain = workQueue.get()
-        
         fakeQueue.append(domain)
-    nownow = datetime.now()
-    logger.info("%s - uploading to domains" % nownow.isoformat())
+
     message = json.dumps(fakeQueue)
     ch.basic_publish(exchange='',routing_key='domains',body=message)
-    nownow = datetime.now()
     ch.basic_ack(delivery_tag = method.delivery_tag)
+    nownow = datetime.now()
+    elapsed = nownow - start
+    ds = threadId / round(elapsed.total_seconds())
+    logger.info("resolved %s domains in %ss - %s d/s" % (threadId, elapsed.total_seconds(), ds ))
 
-def main(pid):
+def mainProc(pid):
     logger.info("%s Starting up", pid)
     start = datetime.now()
     configFile = './config.cfg'
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     config.read(configFile)
     while True:
         credentials = pika.PlainCredentials(
@@ -94,7 +96,7 @@ def main(pid):
                 )
         params = pika.ConnectionParameters(
                     config.get('rabbitmq','host'), 
-                    config.get('rabbitmq','port'), 
+                    config.getint('rabbitmq','port'), 
                     config.get('rabbitmq','vhost'), 
                     credentials=credentials,
                     channel_max=6,
@@ -115,21 +117,19 @@ def main(pid):
             connection.close()
         except pika.exceptions.ConnectionClosed:
             nownow = datetime.now()
-            print("%s - Retry Connection" % nownow.isoformat())
+            logger.info("Retry Connection")
             continue
         time.sleep(1)
 
 if __name__ == "__main__":
     logger.basicConfig(filename="resolver.log", format='%(asctime)s, %(message)s' ,level=logger.INFO)
-    x = 0
     configFile = './config.cfg'
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     config.read(configFile)
-    maxProcs = config.get('domainResolver','processes')
-    while x <= maxProcs:
-        x = x+1;
-        Process(target=main,args=(x,)).start()
-        time.sleep(5)
+    maxProcs = config.getint('domainResolver','processes')
+    for x in range(maxProcs):
+        Process(target=mainProc,args=(x,)).start()
+
 
 
 

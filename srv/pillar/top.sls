@@ -4,4 +4,5 @@ base:
     - mysql
     - rabbitmq
     - softlayer
+    - cloud-profiles
 

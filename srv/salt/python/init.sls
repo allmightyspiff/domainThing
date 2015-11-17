@@ -2,6 +2,9 @@ python-pip:
   pkg:
     - installed
 
+python-dev:
+  pkg.installed: []
+
 netaddr:
   pip.installed:
     - require:
@@ -16,6 +19,7 @@ multiprocessing:
   pip.installed:
     - require:
       - pkg: python-pip
+      - pkg: python-dev
 
 
 mysql-connector-python:
@@ -39,3 +43,10 @@ softlayer:
   pip.installed:
     - require:
       - pkg: python-pip
+
+requests:
+  pip.installed:
+    - name: requests =2.5.3
+    - require:
+      - pkg: python-pip
+

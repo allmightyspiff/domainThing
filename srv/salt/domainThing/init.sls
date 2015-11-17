@@ -15,6 +15,7 @@ git_domainThing:
 domainThing_conf:
   file.managed:
     - name: '/domainThing/config.cfg'
+    - template: jinja
     - source: salt://domainThing/config-template.cfg
     - require:
       - git: git_domainThing
