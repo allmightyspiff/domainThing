@@ -1,7 +1,7 @@
 #! /bin/bash
 
 PATH=/bin:/usr/bin:/sbin:/usr/sbin
-DAEMON=/domainThing/domainResolver2.py
+DAEMON="/domainThing/domainResolver2.py &"
 PIDFILE=/var/run/domainResolver.pid
 HOME_DIR=/domainThing
 
@@ -13,7 +13,7 @@ case "$1" in
   start)
      log_daemon_msg "Starting domainResolver"
      cd $HOME_DIR
-     start_daemon -p $PIDFILE $DAEMON
+     start_daemon -p $PIDFILE $DAEMON &
      log_end_msg $?
    ;;
   stop)

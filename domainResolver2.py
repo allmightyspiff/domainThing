@@ -80,7 +80,10 @@ def callback(ch, method, properties, body):
     ch.basic_ack(delivery_tag = method.delivery_tag)
     nownow = datetime.now()
     elapsed = nownow - start
-    ds = threadId / round(elapsed.total_seconds())
+    if (round(elapsed.total_seconds()) > 0):
+        ds = threadId / round(elapsed.total_seconds())
+    else:
+        ds = 0
     logger.info("resolved %s domains in %ss - %s d/s" % (threadId, elapsed.total_seconds(), ds ))
 
 def mainProc(pid):
