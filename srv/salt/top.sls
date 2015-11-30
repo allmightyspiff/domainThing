@@ -4,6 +4,7 @@ base:
     - unbound
     - domainThing
     - python
+    - ssh
   'host:domain-master':
     - match: grain
     - mysql
