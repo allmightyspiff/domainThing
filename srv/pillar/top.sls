@@ -6,4 +6,9 @@ base:
     - softlayer
     - cloud-profiles
     - elasticsearch
+  'roles:resolver':
+    - match: grain
+    - rabbitmq
+    - mysql
+    - elasticsearch
 

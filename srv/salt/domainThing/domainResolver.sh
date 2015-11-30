@@ -13,7 +13,7 @@ case "$1" in
   start)
      log_daemon_msg "Starting domainResolver"
      cd $HOME_DIR
-     start_daemon -p $PIDFILE python $DAEMON
+     start_daemon -p $PIDFILE $DAEMON
      log_end_msg $?
    ;;
   stop)
