@@ -5,4 +5,5 @@ base:
     - rabbitmq
     - softlayer
     - cloud-profiles
+    - elasticsearch
 

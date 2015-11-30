@@ -18,5 +18,5 @@ rabbitmq:
   config:
     - username: domainThing
     - password: thisDomainThingy
-
+    - host: domain-master-private.lablayer.info
 
