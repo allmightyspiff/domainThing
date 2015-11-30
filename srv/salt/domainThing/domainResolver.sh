@@ -3,6 +3,7 @@
 PATH=/bin:/usr/bin:/sbin:/usr/sbin
 DAEMON=/domainThing/domainResolver2.py
 PIDFILE=/var/run/domainResolver.pid
+HOME_DIR=/domainThing
 
 test -x $DAEMON || exit 0
 
@@ -11,7 +12,8 @@ test -x $DAEMON || exit 0
 case "$1" in
   start)
      log_daemon_msg "Starting domainResolver"
-     start_daemon -p $PIDFILE $DAEMON
+     cd $HOME_DIR
+     start_daemon -p $PIDFILE python $DAEMON
      log_end_msg $?
    ;;
   stop)
