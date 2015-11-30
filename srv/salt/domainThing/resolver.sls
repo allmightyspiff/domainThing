@@ -7,5 +7,7 @@ resolverServiceFile:
 resolverServiceRunner:
   service.running:
     - name: domainResolver
+    - require: 
+      - pkg: git_domainThing
 
 
