@@ -11,4 +11,13 @@ base:
     - rabbitmq
     - mysql
     - elasticsearch
-
+  'roles:parser':
+    - match: grain
+    - rabbitmq
+    - mysql
+    - elasticsearch
+  'roles:consumer':
+    - match: grain
+    - rabbitmq
+    - mysql
+    - elasticsearch

@@ -14,3 +14,9 @@ base:
   'roles:resolver':
     - match: grain
     - domainThing/resolver
+  'roles:consumer':
+    - match: grain
+    - domainThing/consumer
+  'roles:parser':
+    - match: grain
+    - domainThing/parser
