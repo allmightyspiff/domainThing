@@ -7,6 +7,6 @@
           network.ip_addrs:
             interface: eth0
         grains:
-          roles: worker
+          roles: resolver
   {% endfor %}
 {% endfor %}
