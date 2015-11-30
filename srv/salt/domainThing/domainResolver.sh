@@ -1,7 +1,7 @@
 #! /bin/bash
 
 PATH=/bin:/usr/bin:/sbin:/usr/sbin
-DAEMON="/domainThing/domainResolver2.py &"
+DAEMON=/domainThing/domainResolver2.py
 PIDFILE=/var/run/domainResolver.pid
 HOME_DIR=/domainThing
 
@@ -19,8 +19,10 @@ case "$1" in
   stop)
      log_daemon_msg "Stopping domainResolver"
      killproc -p $PIDFILE $DAEMON
-     PID=`ps x |grep feed | head -1 | awk '{print $1}'`
-     kill -9 $PID       
+     for pid in `ps x | grep domainResolver2 |grep -v grep |awk '{print $1}'`; 
+        do 
+            kill -9 $pid; 
+        done      
      log_end_msg $?
    ;;
   force-reload|restart)
@@ -28,7 +30,8 @@ case "$1" in
      $0 start
    ;;
   status)
-     status_of_proc -p $PIDFILE $DAEMON atd && exit 0 || exit $?
+     cd $HOME_DIR
+     tail -n 1 resolver.log && exit 0 || exit $?
    ;;
  *)
    echo "Usage: /etc/init.d/domainResolver {start|stop|restart|force-reload|status}"
