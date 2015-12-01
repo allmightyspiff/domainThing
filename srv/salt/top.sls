@@ -12,12 +12,12 @@ base:
     - elk
     - salt-cloud
     - reactor
+    - domainThing/parser
   'roles:resolver':
     - match: grain
     - domainThing/resolver
   'roles:consumer':
     - match: grain
     - domainThing/consumer
-  'roles:parser':
-    - match: grain
-    - domainThing/parser
+
+    

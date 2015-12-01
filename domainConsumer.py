@@ -7,6 +7,7 @@ from pprint import pprint as pp
 from datetime import datetime, timedelta
 import elasticsearch
 import configparser 
+import logging as logger
 
 class domainConsumer():
 
@@ -73,7 +74,7 @@ class domainConsumer():
         ch.basic_ack(delivery_tag = method.delivery_tag)
 
 if __name__ == "__main__":
-    logger.basicConfig(filename="parser.log", format='%(asctime)s, %(message)s' ,level=logger.INFO)
+    logger.basicConfig(filename="consumer.log", format='%(asctime)s, %(message)s' ,level=logger.INFO)
     try:
         consumer = domainConsumer()
         consumer.main()
