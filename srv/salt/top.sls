@@ -11,6 +11,7 @@ base:
     - rabbitmq.latest
     - elk
     - salt-cloud
+    - reactor
   'roles:resolver':
     - match: grain
     - domainThing/resolver

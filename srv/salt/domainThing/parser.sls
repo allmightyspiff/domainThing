@@ -8,4 +8,4 @@ parserServiceRunner:
   service.running:
     - name: domainParser
     - require: 
-      - pkg: git_domainThing
+      - git: git_domainThing

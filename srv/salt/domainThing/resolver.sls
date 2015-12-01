@@ -8,6 +8,6 @@ resolverServiceRunner:
   service.running:
     - name: domainResolver
     - require: 
-      - pkg: git_domainThing
+      - git: git_domainThing
 
 

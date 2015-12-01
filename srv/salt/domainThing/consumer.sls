@@ -8,4 +8,4 @@ consumerServiceRunner:
   service.running:
     - name: domainConsumer
     - require: 
-      - pkg: git_domainThing
+      - git: git_domainThing
