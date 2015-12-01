@@ -2,6 +2,7 @@ resolverServiceFile:
   file.managed:
     - name: '/etc/init.d/domainResolver'
     - source: salt://domainThing/domainResolver.sh
+    - mode: 755
 
 
 resolverServiceRunner:
