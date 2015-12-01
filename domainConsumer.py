@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 import elasticsearch
 import configparser 
 import logging as logger
+import time
 
 class domainConsumer():
 
@@ -75,10 +76,14 @@ class domainConsumer():
 
 if __name__ == "__main__":
     logger.basicConfig(filename="consumer.log", format='%(asctime)s, %(message)s' ,level=logger.INFO)
-    try:
-        consumer = domainConsumer()
-        consumer.main()
-    except BaseException as e:
-        logger.exception(str(e))
+    while True:
+        logger.info("Staring to CONSUME")
+        try:
+            consumer = domainConsumer()
+            consumer.main()
+        except BaseException as e:
+            logger.exception(str(e))
+        logger.info("There was an error CONSUMING. Sleeping for 600")
+        time.sleep(600)
 
 
