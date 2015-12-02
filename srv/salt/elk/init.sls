@@ -28,7 +28,7 @@ elastic_conf:
   file.managed:
     - name: '/etc/elasticsearch/elasticsearch.yml'
     - contents: |+
-          network.bind_host: {{ salt['network.interfaces']()['eth0']['inet'][0]['address'] }}
+          network.bind_host: {{ salt['network.interfaces']()['bond0']['inet'][0]['address'] }}
     - mode: 644
     - watch_in:
       - service: elasticsearch
