@@ -23,8 +23,8 @@ mysql_debconf:
 
 mysql_root_password:
   cmd.run:
-    - name: mysqladmin --user={{ mysql_root_user }} --password='{{ mysql_root_password|replace("'", "'\"'\"'") }}' ping
-    - unless: mysql --user {{ mysql_root_user }} --password='{{ mysql_root_password|replace("'", "'\"'\"'") }}' --execute="SELECT 1;"
+    - name: mysql -u root -e "SET PASSWORD FOR 'root'@'localhost' = PASSWORD('{{ mysql_root_password}}');"
+    - unless: mysql --user {{ mysql_root_user }} --password='{{ mysql_root_password}}' --execute="SELECT 1;"
     - require:
       - service: mysqld
 

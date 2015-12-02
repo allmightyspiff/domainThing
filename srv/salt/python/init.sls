@@ -1,6 +1,11 @@
 python-pip:
-  pkg:
-    - installed
+  pkg.removed
+python-pip-whl:
+  pkg.removed
+
+pip-install:
+  cmd.run:
+    - name: easy_install pip
 
 python-dev:
   pkg.installed: []
@@ -26,7 +31,7 @@ mysql-connector-python:
   pip.installed:
     - require:
       - pkg: python-pip
-    - allow_external: mysql-connector-python
+    - allow_all_external: True
 
 
 elasticsearch:
