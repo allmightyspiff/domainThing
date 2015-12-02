@@ -107,13 +107,16 @@ if __name__ == "__main__":
     regexIcaan = re.compile('(\S+)\.\s+(\d+)\s+in\s+ns\s+(\S*)')
     regexVerisign = re.compile('(\S+)(\s+NS\s+)(\S*)')
     regexORG = re.compile('(\S+)\.(\s+NS\s+)(\S*)')
+    
     configFile = './config.cfg'
     config = configparser.ConfigParser()
     config.read(configFile)
-    while not config.get('domainParser', 'ready'):
+    ready = config.getint('domainParser','ready')
+    while not ready:
         logger.info("Not ready, sleeping for 60")
         time.sleep(60)
         config.read(configFile)
+        ready = config.getint('domainParser','ready')
 
     try:
 
