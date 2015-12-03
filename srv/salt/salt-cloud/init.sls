@@ -1,22 +1,7 @@
 include:
   - salt-cloud.cloud-map
 
-apache-libcloud:
-  pip.installed:
-    - require:
-      - pkg: python-pip
 
-pycrypto:
-  pip.installed:
-    - require:
-      - pkg: python-pip
-
-salt-cloud:
-  pkg.installed:
-    - name: salt-cloud
-    - require:
-      - pip: apache-libcloud
-      - pip: pycrypto
 
 etc_salt_provider:
   file.managed:
