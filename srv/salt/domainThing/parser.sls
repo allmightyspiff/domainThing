@@ -9,3 +9,4 @@ parserServiceRunner:
     - name: domainParser
     - require: 
       - git: git_domainThing
+      - sls: python

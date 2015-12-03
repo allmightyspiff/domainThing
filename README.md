@@ -52,13 +52,49 @@ Put passwords in a config
 
 
 # SALT-MASTER setup
-apt-get install python-pip
-curl -L https://bootstrap.saltstack.com -o install_salt.sh
-sh install_salt.sh -M -P
+use provision.sh as a postinstall script
+
++ make edits to /srv/pillar/softlayer.sls
+server needs bond0 to work as expected. If not, replace bond0 with eth0 in domainThing/srv/salt/mysql/my.cnf and  domainThing/srv/salt/elk/init.sls
+```
+Rendering SLS 'base:elk' failed: Jinja variable 'dict object' has no attribute 'inet'
+```
+is the error you will get if the network card is different
+
+```bash
+service salt-master restart
+service salt-minion restart
+salt-key -A -y
+
+salt '*' state.highstate
+salt-cloud -y -m /etc/salt/cloud.maps.d/parser.conf
+```
+
+update your master host record to have the IP of your master
+```bash
+slcli dns record-edit --by-record domain-master-private --data 10.76.24.000 lablayer.info
+```
 
 
+copy your subnets.csv file to the master
+```bash
+cd /domainThing
+python subnetsToSql.py
+```
+copy your zones to the parser
 
-       
+After your zones are copied to the parser, and your subnets are in mysql, its time to go!
+
+set ready to 1
+```
+sed -i -e 's/ready: 0/ready: 1/' /srv/salt/domainThing/config-template.cfg
+salt -G 'roles:parser' state.highstate
+```
+
+view the queue
+```
+rabbitmqctl list_queues name messages_ready messages_unacknowledged
+```
 
 
 

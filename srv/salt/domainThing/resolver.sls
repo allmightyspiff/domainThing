@@ -10,5 +10,6 @@ resolverServiceRunner:
     - name: domainResolver
     - require: 
       - git: git_domainThing
+      - sls: python
 
 

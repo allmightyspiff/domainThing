@@ -10,3 +10,4 @@ consumerServiceRunner:
     - name: domainConsumer
     - require: 
       - git: git_domainThing
+      - sls: python

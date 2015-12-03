@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 import logging as logger
 import time
 import configparser 
+from multiprocessing import Process, current_process, active_children
 
 
 class domainReader():
@@ -90,7 +91,6 @@ class domainReader():
                 workQueue = []
                 # Sleeping to not overload queue
                 # need to replace with something more aware
-                time.sleep(.1)
         self.uploadQueue(workQueue)
         nownow = datetime.now()
         logger.info("%s - Finished with %s" % (nownow.isoformat(),filename))
@@ -107,7 +107,7 @@ if __name__ == "__main__":
     regexIcaan = re.compile('(\S+)\.\s+(\d+)\s+in\s+ns\s+(\S*)')
     regexVerisign = re.compile('(\S+)(\s+NS\s+)(\S*)')
     regexORG = re.compile('(\S+)\.(\s+NS\s+)(\S*)')
-    
+
     configFile = './config.cfg'
     config = configparser.ConfigParser()
     config.read(configFile)
@@ -121,9 +121,11 @@ if __name__ == "__main__":
     try:
 
         domainReader = domainReader()
-        domainReader.getZoneFiles(regexVerisign, "./zones/verisign")
-        domainReader.getZoneFiles(regexIcaan, "./zones/icaan")
-        domainReader.getZoneFiles(regexORG, "./zones/org")
+        a = Process(target=domainReader.getZoneFiles,args=("./zones/verisign",)).start()
+        b = Process(target=domainReader.getZoneFiles,args=("./zones/icaan",)).start()
+        c = Process(target=domainReader.getZoneFiles,args=("./zones/org",)).start()
+        pp.pprint(active_children())
+
     except BaseException as e:
         logger.error("Exiting due to exception")
         logger.exception(str(e))

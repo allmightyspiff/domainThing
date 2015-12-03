@@ -1,12 +1,6 @@
 python-pip:
-  pkg.removed
-python-pip-whl:
-  pkg.removed
-
-pip-install:
-  cmd.run:
-    - name: easy_install pip
-
+  pkg.installed: []
+  
 python-dev:
   pkg.installed: []
 
