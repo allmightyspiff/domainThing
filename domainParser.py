@@ -124,7 +124,7 @@ if __name__ == "__main__":
         a = Process(target=domainReader.getZoneFiles,args=(regexVerisign,"./zones/verisign",)).start()
         b = Process(target=domainReader.getZoneFiles,args=(regexIcaan,"./zones/icaan",)).start()
         c = Process(target=domainReader.getZoneFiles,args=(regexORG,"./zones/org",)).start()
-        pp.pprint(active_children())
+        active_children()
 
     except BaseException as e:
         logger.error("Exiting due to exception")
