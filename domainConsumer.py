@@ -9,8 +9,19 @@ import elasticsearch
 import configparser 
 import logging as logger
 import time
+from multiprocessing import Process, current_process, active_children
 
 class domainConsumer():
+
+    def gogo(self, pid):
+        while True:
+            logger.info("Staring to CONSUME %s" , pid)
+            try:
+                self.main()
+            except BaseException as e:
+                logger.exception(str(e))
+            logger.info("There was an error CONSUMING. Sleeping for 600")
+            time.sleep(600)
 
     def main(self):
         configFile = './config.cfg'
@@ -76,14 +87,14 @@ class domainConsumer():
 
 if __name__ == "__main__":
     logger.basicConfig(filename="consumer.log", format='%(asctime)s, %(message)s' ,level=logger.INFO)
-    while True:
-        logger.info("Staring to CONSUME")
-        try:
-            consumer = domainConsumer()
-            consumer.main()
-        except BaseException as e:
-            logger.exception(str(e))
-        logger.info("There was an error CONSUMING. Sleeping for 600")
-        time.sleep(600)
+    configFile = './config.cfg'
+    config = configparser.ConfigParser()
+    config.read(configFile)
+    maxProcs = config.getint('domainConsumer','processes')
+    for x in range(maxProcs):
+        consumer = domainConsumer()
+        Process(target=consumer.gogo,args=(x,)).start()
+
+
 
 

@@ -121,7 +121,8 @@ if __name__ == "__main__":
     try:
 
         # This gives each process its own connection to rabbit
-        # so that they don't clobber each other
+        # so that they don't clobber each other. Not doing this causes
+        # rabbit to disconnect the thread.
         domainReadera = domainReader()
         domainReaderb = domainReader()
         domainReaderc = domainReader()
