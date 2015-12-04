@@ -14,6 +14,7 @@ from multiprocessing import Process, current_process, active_children
 class domainConsumer():
 
     def gogo(self, pid):
+        logger.basicConfig(filename="consumer-%d.log" % pid, format='%(asctime)s, %(message)s' ,level=logger.INFO)
         while True:
             logger.info("Staring to CONSUME %s" , pid)
             try:
@@ -86,7 +87,7 @@ class domainConsumer():
         ch.basic_ack(delivery_tag = method.delivery_tag)
 
 if __name__ == "__main__":
-    logger.basicConfig(filename="consumer.log", format='%(asctime)s, %(message)s' ,level=logger.INFO)
+
     configFile = './config.cfg'
     config = configparser.ConfigParser()
     config.read(configFile)
