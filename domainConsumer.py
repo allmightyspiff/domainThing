@@ -37,15 +37,15 @@ class domainConsumer():
           'database': config.get('mysql','database')
         }
 
-        es = elasticsearch.Elasticsearch([{'host':config.get('elasticsearch','host')}])  
+        self.es = elasticsearch.Elasticsearch([{'host':config.get('elasticsearch','host')}])  
 
         sql = mysql.connector.connect(**my_config)
-        cursor = sql.cursor()
-        query = ("SELECT ip from ip_address_unique WHERE ip = %(int_ip)s LIMIT 1")
+        self.cursor = sql.cursor()
+        self.query = ("SELECT ip from ip_address_unique WHERE ip = %(int_ip)s LIMIT 1")
         channel.basic_consume(self.callback,queue='domains')
         channel.start_consuming()
 
-    def callback(ch, method, properties, body):
+    def callback(self, ch, method, properties, body):
         domains = json.loads(body)
         final_domain = []
         for domain in domains:
@@ -56,21 +56,21 @@ class domainConsumer():
             except:
                 ip = IPAddress('0.0.0.0')
 
-            cursor.execute(query,{ 'int_ip' : ip.value})
+            self.cursor.execute(self.query,{ 'int_ip' : ip.value})
             # Need to fetch the results or else an exception gets thrown
-            results = cursor.fetchall()
+            results = self.cursor.fetchall()
             logger.info("%s, %s, %s"  % (domain['domain'], domain['ip'], str(ip.value)))
 
             nownow = datetime.now()
             elapsed = nownow - start
             domain['lookupTime'] = elapsed.total_seconds()
             domain['finalStartTime'] = nownow.isoformat()
-            if cursor.rowcount > 0:
+            if self.cursor.rowcount > 0:
                 domain['softlayer'] = 1
             else:
                 domain['softlayer'] = 0
 
-            es.index(index="domain-final",doc_type="blog",body=json.dumps(domain))
+            self.es.index(index="domain-final",doc_type="blog",body=json.dumps(domain))
 
         ch.basic_ack(delivery_tag = method.delivery_tag)
 
