@@ -5,6 +5,7 @@ base:
     - domainThing
     - python
     - ssh
+    - sysstat
   'host:domain-master':
     - match: grain
     - mysql
