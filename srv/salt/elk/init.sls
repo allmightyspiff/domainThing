@@ -48,3 +48,10 @@ kibana:
     - source: https://download.elastic.co/kibana/kibana/kibana-4.1.3-linux-x64.tar.gz
     - archive_format: tar
     - tar_options: xf
+
+kibana_config:
+  file.managed:
+    - name: {{ kibana_wwwroot }}/kibana-4.1.3-linux-x64/config/kibana.yml
+    - template: jinja
+    - source: salt://elk/kibana.cfg
+    - mode: 644
