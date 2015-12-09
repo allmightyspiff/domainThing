@@ -2,7 +2,7 @@ sysstat:
   pkg: 
     - installed
   service.running:
-    - enabled: True
+    - enable: True
     - watch:
       - file: /etc/default/sysstat
 
