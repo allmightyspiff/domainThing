@@ -8,6 +8,37 @@
             interface: eth0
         grains:
           roles: resolver
+  - consumer-{{ name }}-{{ number }}:
+      minion:
+        mine_functions:
+          network.ip_addrs:
+            interface: eth0
+        grains:
+          roles: consumer
   {% endfor %}
 {% endfor %}
 
+sjc01:
+  - parser-00:
+      minion:
+        mine_functions:
+          network.ip_addrs:
+            interface: eth0
+        grains:
+          roles: parser
+
+dal-09-rabbit:
+  - rabbit-01:
+      minion:
+        mine_functions:
+          network.ip_addrs:
+            interface: eth0
+        grains:
+          roles: rabbit
+  - rabbit-02:
+      minion:
+        mine_functions:
+          network.ip_addrs:
+            interface: eth0
+        grains:
+          roles: rabbit

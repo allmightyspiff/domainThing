@@ -22,3 +22,7 @@ base:
   'roles:parser':
     - match: grain
     - domainThing/parser
+
+  'roles:rabbit':
+    - match: grain
+    - rabbitmq.latest
