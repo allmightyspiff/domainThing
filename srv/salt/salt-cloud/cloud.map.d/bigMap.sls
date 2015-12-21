@@ -18,7 +18,7 @@
   {% endfor %}
 {% endfor %}
 
-sjc01:
+sjc01-parser:
   - parser-00:
       minion:
         mine_functions:
