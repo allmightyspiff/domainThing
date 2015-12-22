@@ -20,6 +20,7 @@ class domainConsumer():
             try:
                 self.main()
             except BaseException as e:
+                continue
                 #logger.exception(str(e))
             #logger.info("There was an error CONSUMING. Sleeping for 600")
             time.sleep(600)
