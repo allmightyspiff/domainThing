@@ -14,14 +14,14 @@ from multiprocessing import Process, current_process, active_children
 class domainConsumer():
 
     def gogo(self, pid):
-        logger.basicConfig(filename="consumer-%d.log" % pid, format='%(asctime)s, %(message)s' ,level=logger.INFO)
+        #logger.basicConfig(filename="consumer-%d.log" % pid, format='%(asctime)s, %(message)s' ,level=logger.INFO)
         while True:
-            logger.info("Staring to CONSUME %s" , pid)
+            #logger.info("Staring to CONSUME %s" , pid)
             try:
                 self.main()
             except BaseException as e:
-                logger.exception(str(e))
-            logger.info("There was an error CONSUMING. Sleeping for 600")
+                #logger.exception(str(e))
+            #logger.info("There was an error CONSUMING. Sleeping for 600")
             time.sleep(600)
 
     def main(self):
@@ -71,7 +71,7 @@ class domainConsumer():
             self.cursor.execute(self.query,{ 'int_ip' : ip.value})
             # Need to fetch the results or else an exception gets thrown
             results = self.cursor.fetchall()
-            logger.info("%s, %s, %s"  % (domain['domain'], domain['ip'], str(ip.value)))
+            #logger.info("%s, %s, %s"  % (domain['domain'], domain['ip'], str(ip.value)))
 
             nownow = datetime.now()
             elapsed = nownow - start

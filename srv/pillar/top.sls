@@ -21,3 +21,6 @@ base:
     - rabbitmq
     - mysql
     - elasticsearch
+  'roles:rabbit':
+    - match: grain
+    - rabbitmq
