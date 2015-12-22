@@ -4,7 +4,7 @@ import time
 from datetime import datetime, timedelta
 import sys
 
-es = elasticsearch.Elasticsearch([{'host':'10.37.82.159'}])
+es = elasticsearch.Elasticsearch([{'host':'10.76.24.148'}])
 last = 0
 now = 0
 lastTime = datetime.now()
