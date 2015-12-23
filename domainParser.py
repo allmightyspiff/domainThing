@@ -59,6 +59,9 @@ class domainReader():
         # we can figure this out from the filename though
         nownow = datetime.now()
         tld = re.search("\S+\/(\S+)\.zone$", filename)
+        # of course .org zone has to be difficult
+        if tld == 'org':
+            tld = None
         for line in f:
             lineNumber = lineNumber + 1
             if lineNumber < startLine:
