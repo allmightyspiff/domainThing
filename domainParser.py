@@ -60,7 +60,8 @@ class domainReader():
         nownow = datetime.now()
         tld = re.search("\S+\/(\S+)\.zone$", filename)
         # of course .org zone has to be difficult
-        if tld == 'org':
+        orgzone = './zones/org/org.zone'
+        if filename == orgzone:
             tld = None
         for line in f:
             lineNumber = lineNumber + 1

@@ -102,7 +102,6 @@ def mainProc(pid):
                     config.getint('rabbitmq','port'), 
                     config.get('rabbitmq','vhost'), 
                     credentials=credentials,
-                    channel_max=6,
                     heartbeat_interval=500,
                     connection_attempts=3,
                     socket_timeout=15
