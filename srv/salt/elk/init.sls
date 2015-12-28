@@ -33,6 +33,14 @@ elastic_conf:
     - watch_in:
       - service: elasticsearch
 
+elastic_default_conf:
+  file.managed:
+    - name: '/etc/default/elasticsearch'
+    - source: 'salt:/elk/elast_default.conf'
+    - mode: 644
+    - watch_in:
+      - service: elasticsearch
+
 kibana_static_dir:
   file.directory:
     - name: {{ kibana_wwwroot }}

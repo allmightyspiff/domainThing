@@ -35,10 +35,4 @@ dal-09-rabbit:
             interface: eth0
         grains:
           roles: rabbit
-  - rabbit-02:
-      minion:
-        mine_functions:
-          network.ip_addrs:
-            interface: eth0
-        grains:
-          roles: rabbit
+
