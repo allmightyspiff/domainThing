@@ -97,4 +97,19 @@ rabbitmqctl list_queues name messages_ready messages_unacknowledged
 ```
 
 
+ORIGINAL
+# time python domainParser.py
+
+real    0m24.858s
+user    0m0.110s
+sys 0m0.018s
+
+WITH THREADS
+# time python domainParser.py
+
+real    0m0.115s
+user    0m0.125s
+sys 0m0.033s
+
+
 
