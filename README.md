@@ -29,26 +29,7 @@ https://github.com/drkjam/netaddr
 https://www.rabbitmq.com/install-debian.html
 https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-repositories.html
 https://download.elastic.co/kibana/kibana/kibana-4.2.0-linux-x64.tar.gz
-- https://download.elastic.co/kibana/kibana/kibana-4.1.2-linux-x64.tar.gz
-
-## V1 Writeup
-put shit here
-
-
-## V2 TODO
-https://www.digitalocean.com/community/tutorials/how-to-install-elasticsearch-logstash-and-kibana-4-on-centos-7 - logging thing
-http://www.celeryproject.org/ - queueing thingy
-kafka  - apache queue 
-https://www.unbound.net/ - speed up DNS
-+ apt-get install unbound unbound-host
-+ http://munin-monitoring.org/
-Make domainParser put things into queue
-Make a domainResolver script read from queue and look up DNS
-Upgrade elastic search to 2.0
-https://www.elastic.co/downloads/shield
-get domainParser to mark what it did last somehow with rate limiting
-Put passwords in a config
-
+https://download.elastic.co/kibana/kibana/kibana-4.1.2-linux-x64.tar.gz
 
 
 # SALT-MASTER setup
@@ -96,20 +77,6 @@ view the queue
 rabbitmqctl list_queues name messages_ready messages_unacknowledged
 ```
 
-
-ORIGINAL
-# time python domainParser.py
-
-real    0m24.858s
-user    0m0.110s
-sys 0m0.018s
-
-WITH THREADS
-# time python domainParser.py
-
-real    0m0.115s
-user    0m0.125s
-sys 0m0.033s
 
 
 
