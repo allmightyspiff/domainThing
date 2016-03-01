@@ -16,7 +16,8 @@ from multiprocessing import Process, current_process, active_children
 
 class domainReader():
 
-    def __init__(self):
+
+    def __init__(self, domainType):
         self.start = datetime.now()
         configFile = './config.cfg'
         config = configparser.ConfigParser()
@@ -37,16 +38,22 @@ class domainReader():
                 )
         self.channel = connection.channel()
         self.channel.queue_declare(queue='domain-queue')
+        self.regex = re.compile(config.get(domainType,'regex'))
+        self.path = config.get(domainType,'path')
+
 
     def __exit__(self):
         logger.info("domainReader Shutting down")
         self.connection.close()
 
-    def getZoneFiles(self, regex, path="./zones/icaan", startLine=0):
-        for root, dirs, files in os.walk(path, topdown=True):
+    def getZoneFiles(self, startLine=0):
+        logger.info("Looing in %s" % (self.path))
+        for root, dirs, files in os.walk(self.path, topdown=True):
+            logger.info("fucks")
+            pp(files)
             for name in files:
                 logger.info("Found FILE %s" % name)
-                self.queueDomains(regex,os.path.join(root, name), startLine)
+                self.queueDomains(self.regex,os.path.join(root, name), startLine)
 
 
     def queueDomains(self,regex, filename, startLine):
@@ -108,9 +115,7 @@ class domainReader():
 
 if __name__ == "__main__":
     logger.basicConfig(filename="parser.log", format='%(asctime)s, %(message)s' ,level=logger.INFO)
-    regexIcaan = re.compile('(\S+)\.\s+(\d+)\s+in\s+ns\s+(\S*)')
-    regexVerisign = re.compile('(\S+)(\s+NS\s+)(\S*)')
-    regexORG = re.compile('(\S+)\.(\s+NS\s+)(\S*)')
+
 
     configFile = './config.cfg'
     config = configparser.ConfigParser()
@@ -127,12 +132,16 @@ if __name__ == "__main__":
         # This gives each process its own connection to rabbit
         # so that they don't clobber each other. Not doing this causes
         # rabbit to disconnect the thread.
-        domainReadera = domainReader()
-        domainReaderb = domainReader()
-        domainReaderc = domainReader()
-        a = Process(target=domainReadera.getZoneFiles,args=(regexVerisign,"./zones/verisign",)).start()
-        b = Process(target=domainReaderb.getZoneFiles,args=(regexIcaan,"./zones/icaan",)).start()
-        c = Process(target=domainReaderc.getZoneFiles,args=(regexORG,"./zones/org",)).start()
+        domainReadera = domainReader('verisign')
+        domainReaderb = domainReader('icaan')
+        domainReaderc = domainReader('org')
+
+        regexIcaan = domainReadera.regexIcaan
+        regexVerisign = domainReadera.regexVerisign
+        regexORG = domainReadera.regexORG
+        a = Process(target=domainReadera.getZoneFiles).start()
+        b = Process(target=domainReaderb.getZoneFiles).start()
+        c = Process(target=domainReaderc.getZoneFiles).start()
         active_children()
 
     except BaseException as e:
