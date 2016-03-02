@@ -125,10 +125,12 @@ class domainResolver():
         self.channel.queue_declare(queue='domains')
         self.channel.queue_declare(queue='domain-queue')
         self.channel.basic_consume(self.callback, queue='domain-queue')
-        self.channel.add_callback(self.stopRunning,pika.spec.Basic.GetEmpty)
-        # channel.basic_qos(prefetch_count=1)
 
-        self.channel.start_consuming()
+        # channel.basic_qos(prefetch_count=1)
+        try:
+            self.channel.start_consuming()
+        except KeyboardInterrupt:
+            self.channel.stop_consuming()
         self.pika_conn.close()
 
     def stopRunning(self,frame):
