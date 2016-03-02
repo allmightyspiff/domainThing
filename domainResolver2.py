@@ -81,6 +81,14 @@ class domainResolver():
                     )
         self.pika_conn =  pika.BlockingConnection(pika_param)
         self.channel = self.pika_conn.channel()
+        self.doStats = 0
+        self.stats = {
+            'domains' : 0,
+            'startTime': 0,
+            'endTime' : 0,
+            'runningSeconds': 0,
+            'avg': []
+        }
 
     def callback(ch, method, properties, body):
         start = datetime.now()
@@ -107,6 +115,10 @@ class domainResolver():
         else:
             ds = 0
         logger.info("resolved %s domains in %ss - %s d/s" % (threadId, elapsed.total_seconds(), ds ))
+        if self.doStats:
+            self.stats['domains'] = self.stats['domains'] + threadId
+            self.stats['runningSeconds'] =self.stats['runningSeconds'] + elapsed.total_seconds()
+            self.stats['avg'][] = ds
 
     def gogo(self,pid):
         while True:
@@ -121,7 +133,7 @@ class domainResolver():
 
         logger.info("Starting up")
         start = datetime.now()
-
+        self.doStats = 1
         self.channel.queue_declare(queue='domains')
         self.channel.queue_declare(queue='domain-queue')
         self.channel.basic_consume(self.callback, queue='domain-queue')
@@ -132,6 +144,9 @@ class domainResolver():
         except KeyboardInterrupt:
             self.channel.stop_consuming()
         self.pika_conn.close()
+        logger.info("Ddomains: %s" % (self.stats['domains']))
+        logger.info("runningSeconds: %s" % (self.stats['runningSeconds']))
+        logger.info("Average domains/s %s" % (self.stats['avg']))
 
     def stopRunning(self,frame):
         logger.info("Hit an empty Queue")
