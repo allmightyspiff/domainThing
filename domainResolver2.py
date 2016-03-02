@@ -60,68 +60,94 @@ class domainThread(threading.Thread):
         workQueue.put(domain)
         return True
 
-def callback(ch, method, properties, body):
-    start = datetime.now()
-    domains = json.loads(body)
-    workQueue = Queue.Queue()
-    fakeQueue = []
-    threadId = 0
-    for domain in domains:
-        threadId = threadId + 1 
-        thread = domainThread(domain,workQueue, threadId)
-        thread.start()
+class domainResolver():
+    def __init__():
+        configFile = './config.cfg'
+        config = configparser.ConfigParser()
+        config.read(configFile)
 
-    for x in range(len(domains)):
-        domain = workQueue.get()
-        fakeQueue.append(domain)
+        pika_cred = pika.PlainCredentials(
+                        config.get('rabbitmq','user'), 
+                        config.get('rabbitmq','password')
+                    )
+        pika_param = pika.ConnectionParameters(
+                        config.get('rabbitmq','host'), 
+                        config.getint('rabbitmq','port'), 
+                        config.get('rabbitmq','vhost'), 
+                        credentials=pika_cred,
+                        heartbeat_interval=500,
+                        connection_attempts=3,
+                        socket_timeout=15
+                    )
+        self.pika_conn =  pika.BlockingConnection(pika_param)
+        self.channel = self.pika_conn.channel()
 
-    message = json.dumps(fakeQueue)
-    ch.basic_publish(exchange='',routing_key='domains',body=message)
-    ch.basic_ack(delivery_tag = method.delivery_tag)
-    nownow = datetime.now()
-    elapsed = nownow - start
-    if (elapsed.total_seconds() > 0):
-        ds = round(threadId / elapsed.total_seconds())
-    else:
-        ds = 0
-    logger.info("resolved %s domains in %ss - %s d/s" % (threadId, elapsed.total_seconds(), ds ))
+    def callback(ch, method, properties, body):
+        start = datetime.now()
+        domains = json.loads(body)
+        workQueue = Queue.Queue()
+        fakeQueue = []
+        threadId = 0
+        for domain in domains:
+            threadId = threadId + 1 
+            thread = domainThread(domain,workQueue, threadId)
+            thread.start()
 
-def mainProc(pid):
-    logger.info("%s Starting up", pid)
-    start = datetime.now()
-    configFile = './config.cfg'
-    config = configparser.ConfigParser()
-    config.read(configFile)
-    while True:
-        credentials = pika.PlainCredentials(
-                    config.get('rabbitmq','user'), 
-                    config.get('rabbitmq','password')
-                )
-        params = pika.ConnectionParameters(
-                    config.get('rabbitmq','host'), 
-                    config.getint('rabbitmq','port'), 
-                    config.get('rabbitmq','vhost'), 
-                    credentials=credentials,
-                    heartbeat_interval=500,
-                    connection_attempts=3,
-                    socket_timeout=15
-                )
-        connection = pika.BlockingConnection(params)
+        for x in range(len(domains)):
+            domain = workQueue.get()
+            fakeQueue.append(domain)
 
-        channel = connection.channel()
-        channel.queue_declare(queue='domains')
-        channel.queue_declare(queue='domain-queue')
-        channel.basic_consume(callback, queue='domain-queue')
-        channel.basic_qos(prefetch_count=1)
+        message = json.dumps(fakeQueue)
+        ch.basic_publish(exchange='',routing_key='domains',body=message)
+        ch.basic_ack(delivery_tag = method.delivery_tag)
+        nownow = datetime.now()
+        elapsed = nownow - start
+        if (elapsed.total_seconds() > 0):
+            ds = round(threadId / elapsed.total_seconds())
+        else:
+            ds = 0
+        logger.info("resolved %s domains in %ss - %s d/s" % (threadId, elapsed.total_seconds(), ds ))
 
-        try:
-            channel.start_consuming()
-            connection.close()
-        except pika.exceptions.ConnectionClosed:
-            nownow = datetime.now()
-            logger.info("Retry Connection")
-            continue
-        time.sleep(1)
+    def gogo(self,pid):
+        while True:
+            try:
+                self.mainProc(pid)
+            except BaseException as e:
+                logger.exception(str(e))
+            logger.info("There was an error CONSUMING. Sleeping for 600")
+            time.sleep(600)
+
+    def singleRun(pid):
+
+        logger.info("%s Starting up", pid)
+        start = datetime.now()
+
+        self.channel.channel.queue_declare(queue='domains')
+        self.channel.channel.queue_declare(queue='domain-queue')
+        self.channel.channel.basic_consume(callback, queue='domain-queue')
+        self.channel.channel.add_callback(stopRunning,pika.spec.Basic.GetEmpty)
+        # channel.basic_qos(prefetch_count=1)
+
+        self.channel.start_consuming()
+        self.pika_conn.close()
+
+    def stopRunning(frame):
+        logger.info("Hit an empty Queue")
+        self.channel.basic_cancel()
+        self.pika_conn.close()
+
+    def mainProc(pid):
+        logger.info("%s Starting up", pid)
+        start = datetime.now()
+        channel = self.connection.channel()
+        self.channel.channel.queue_declare(queue='domains')
+        self.channel.channel.queue_declare(queue='domain-queue')
+        self.channel.channel.basic_consume(callback, queue='domain-queue')
+        # channel.basic_qos(prefetch_count=1)
+
+        self.channel.channel.start_consuming()
+        self.pika_conn.close()
+
 
 if __name__ == "__main__":
     logger.basicConfig(filename="resolver.log", format='%(asctime)s, %(message)s' ,level=logger.INFO)
@@ -129,8 +155,9 @@ if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read(configFile)
     maxProcs = config.getint('domainResolver','processes')
+    resolver = domainResolver()
     for x in range(maxProcs):
-        Process(target=mainProc,args=(x,)).start()
+        Process(target=resolver.gogo,args=(x,)).start()
 
 
 

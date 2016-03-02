@@ -1,5 +1,5 @@
 from domainParser import domainReader
-from domainResolver2 import mainProc
+from domainResolver2 import domainResolver
 from domainConsumer import domainConsumer
 import logging as logger
 
@@ -10,7 +10,8 @@ if __name__ == "__main__":
     reader = domainReader('verisign')
     # reader.getZoneFiles()
     print("Starting to resolve")
-    mainProc(1)
+    resolver = domainResolver()
+    resolver.singleRun()
     print("DONE RESOLVING")
     consumer = domainConsumer("testing-1")
     consumer.main()
