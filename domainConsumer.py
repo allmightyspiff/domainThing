@@ -14,37 +14,26 @@ from multiprocessing import Process, current_process, active_children
 class domainConsumer():
 
     def __init__(self,indexName="domain-final"):
-        self.index = indexName
-
-    def gogo(self, pid):
-        logger.basicConfig(filename="consumer-%d.log" % pid, format='%(asctime)s, %(message)s' ,level=logger.INFO)
-        while True:
-            logger.info("Staring to CONSUME %s" , pid)
-            try:
-                self.main()
-            except BaseException as e:
-                logger.exception(str(e))
-            logger.info("There was an error CONSUMING. Sleeping for 600")
-            time.sleep(600)
-
-    def main(self):
         configFile = './config.cfg'
         config = configparser.ConfigParser()
         config.read(configFile)
-        credentials = pika.PlainCredentials(
-                    config.get('rabbitmq','user'), 
-                    config.get('rabbitmq','password')
-                )
-        connection = pika.BlockingConnection(pika.ConnectionParameters(
-                    config.get('rabbitmq','host'), 
-                    config.getint('rabbitmq','port'), 
-                    config.get('rabbitmq','vhost'), 
-                    credentials, 
-                    socket_timeout=15)
-                )
 
-        channel = connection.channel()
-        channel.queue_declare(queue='domains')
+        pika_cred = pika.PlainCredentials(
+                        config.get('rabbitmq','user'), 
+                        config.get('rabbitmq','password')
+                    )
+        pika_param = pika.ConnectionParameters(
+                        config.get('rabbitmq','host'), 
+                        config.getint('rabbitmq','port'), 
+                        config.get('rabbitmq','vhost'), 
+                        credentials=pika_cred,
+                        heartbeat_interval=500,
+                        connection_attempts=3,
+                        socket_timeout=15
+                    )
+        self.pika_conn =  pika.BlockingConnection(pika_param)
+        self.channel = self.pika_conn.channel()
+
         my_config = {
           'user': config.get('mysql','user'),
           'password': config.get('mysql','password'),
@@ -57,8 +46,32 @@ class domainConsumer():
         sql = mysql.connector.connect(**my_config)
         self.cursor = sql.cursor()
         self.query = ("SELECT ip from ip_address_unique WHERE ip = %(int_ip)s LIMIT 1")
-        channel.basic_consume(self.callback,queue='domains')
-        channel.start_consuming()
+        self.doStats = 0
+        self.index = indexName
+        self.doStats = 0
+        self.stats = {
+            'domains' : 0,
+            'startTime' : 0,
+            'endTime' : 0
+        }
+
+    def gogo(self, pid):
+        
+        while True:
+            logger.info("Staring to CONSUME %s" , pid)
+            try:
+                self.main()
+            except BaseException as e:
+                logger.exception(str(e))
+            logger.info("There was an error CONSUMING. Sleeping for 600")
+            time.sleep(600)
+
+    def main(self):
+        self.channel = connection.channel()
+        self.channel.queue_declare(queue='domains')
+
+        self.channel.basic_consume(self.callback,queue='domains')
+        self.channel.start_consuming()
 
     def callback(self, ch, method, properties, body):
         domains = json.loads(body)
@@ -88,9 +101,12 @@ class domainConsumer():
             self.es.index(index=self.index,doc_type="blog",body=json.dumps(domain))
 
         ch.basic_ack(delivery_tag = method.delivery_tag)
+        if self.doStats:
+            self.stats['domains'] = self.stats['domains'] + len(domains)
+            self.stats['endTime'] = datetime.now().isoformat()
 
 if __name__ == "__main__":
-
+    logger.basicConfig(filename="consumer-%d.log" % pid, format='%(asctime)s, %(message)s' ,level=logger.INFO)
     configFile = './config.cfg'
     config = configparser.ConfigParser()
     config.read(configFile)
