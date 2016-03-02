@@ -124,8 +124,8 @@ class domainResolver():
 
         self.channel.queue_declare(queue='domains')
         self.channel.queue_declare(queue='domain-queue')
-        self.channel.basic_consume(callback, queue='domain-queue')
-        self.channel.add_callback(stopRunning,pika.spec.Basic.GetEmpty)
+        self.channel.basic_consume(self.callback, queue='domain-queue')
+        self.channel.add_callback(self.stopRunning,pika.spec.Basic.GetEmpty)
         # channel.basic_qos(prefetch_count=1)
 
         self.channel.start_consuming()
@@ -142,7 +142,7 @@ class domainResolver():
         channel = self.connection.channel()
         self.channel.queue_declare(queue='domains')
         self.channel.queue_declare(queue='domain-queue')
-        self.channel.basic_consume(callback, queue='domain-queue')
+        self.channel.basic_consume(self.callback, queue='domain-queue')
         # channel.basic_qos(prefetch_count=1)
 
         self.channel.start_consuming()
