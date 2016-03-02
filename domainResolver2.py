@@ -61,7 +61,7 @@ class domainThread(threading.Thread):
         return True
 
 class domainResolver():
-    def __init__():
+    def __init__(self):
         configFile = './config.cfg'
         config = configparser.ConfigParser()
         config.read(configFile)
@@ -117,35 +117,35 @@ class domainResolver():
             logger.info("There was an error CONSUMING. Sleeping for 600")
             time.sleep(600)
 
-    def singleRun(pid):
+    def singleRun(self):
 
-        logger.info("%s Starting up", pid)
+        logger.info("Starting up")
         start = datetime.now()
 
-        self.channel.channel.queue_declare(queue='domains')
-        self.channel.channel.queue_declare(queue='domain-queue')
-        self.channel.channel.basic_consume(callback, queue='domain-queue')
-        self.channel.channel.add_callback(stopRunning,pika.spec.Basic.GetEmpty)
+        self.channel.queue_declare(queue='domains')
+        self.channel.queue_declare(queue='domain-queue')
+        self.channel.basic_consume(callback, queue='domain-queue')
+        self.channel.add_callback(stopRunning,pika.spec.Basic.GetEmpty)
         # channel.basic_qos(prefetch_count=1)
 
         self.channel.start_consuming()
         self.pika_conn.close()
 
-    def stopRunning(frame):
+    def stopRunning(self,frame):
         logger.info("Hit an empty Queue")
         self.channel.basic_cancel()
         self.pika_conn.close()
 
-    def mainProc(pid):
+    def mainProc(self,pid):
         logger.info("%s Starting up", pid)
         start = datetime.now()
         channel = self.connection.channel()
-        self.channel.channel.queue_declare(queue='domains')
-        self.channel.channel.queue_declare(queue='domain-queue')
-        self.channel.channel.basic_consume(callback, queue='domain-queue')
+        self.channel.queue_declare(queue='domains')
+        self.channel.queue_declare(queue='domain-queue')
+        self.channel.basic_consume(callback, queue='domain-queue')
         # channel.basic_qos(prefetch_count=1)
 
-        self.channel.channel.start_consuming()
+        self.channel.start_consuming()
         self.pika_conn.close()
 
 
