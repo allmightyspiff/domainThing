@@ -13,6 +13,9 @@ from multiprocessing import Process, current_process, active_children
 
 class domainConsumer():
 
+    def __init__(self,indexName="domain-final"):
+        self.index = indexName
+
     def gogo(self, pid):
         logger.basicConfig(filename="consumer-%d.log" % pid, format='%(asctime)s, %(message)s' ,level=logger.INFO)
         while True:
@@ -82,7 +85,7 @@ class domainConsumer():
             else:
                 domain['softlayer'] = 0
 
-            self.es.index(index="domain-final",doc_type="blog",body=json.dumps(domain))
+            self.es.index(index=self.index,doc_type="blog",body=json.dumps(domain))
 
         ch.basic_ack(delivery_tag = method.delivery_tag)
 

@@ -1,5 +1,6 @@
 from domainParser import domainReader
 from domainResolver2 import mainProc
+from domainConsumer import domainConsumer
 import logging as logger
 
 
@@ -10,4 +11,7 @@ if __name__ == "__main__":
     # reader.getZoneFiles()
     print("Starting to resolve")
     mainProc(1)
+    print("DONE RESOLVING")
+    consumer = domainConsumer("testing-1")
+    consumer.main()
     print("DONE")
