@@ -54,7 +54,8 @@ class domainConsumer():
             'domains' : 0,
             'startTime' : 0,
             'endTime' : 0,
-            'runningSeconds': 0
+            'runningSeconds': 0,
+            'avg': []
         }
 
     def gogo(self, pid):
@@ -88,7 +89,8 @@ class domainConsumer():
         self.pika_conn.close()
         logger.info("Start: %s" % (self.stats['startTime']))
         logger.info("Ddomains: %s" % (self.stats['domains']))
-        logger.info("runningMicroSeconds: %s" % (self.stats['runningSeconds']))
+        logger.info("runningSeconds: %s" % (self.stats['runningSeconds']))
+        logger.info("Average domains/s %s" % (self.stats['avg']))
         logger.info("End: %s" % (self.stats['endTime']))
 
     def callback(self, ch, method, properties, body):
@@ -123,13 +125,18 @@ class domainConsumer():
         main_end = datetime.now()
         elapsed = main_end - main_start
         domain_count = len(domains)
-        micro_elapsed = elapsed.microseconds + (elapsed.seconds * 10**6)
+        elapsed = nownow - start
+        if (elapsed.total_seconds() > 0):
+            ds = round(threadId / elapsed.total_seconds())
+        else:
+            ds = 0
    
-        logger.info("resolved %s domains in %ss" % (domain_count, micro_elapsed ))
+        logger.info("consumed %s domains in %ss" % (domain_count, elapsed, ds))
         if self.doStats:
             self.stats['domains'] = self.stats['domains'] + domain_count
             self.stats['endTime'] = datetime.now().isoformat()
-            self.stats['runningSeconds'] =self.stats['runningSeconds'] + micro_elapsed
+            self.stats['runningSeconds'] =self.stats['runningSeconds'] + elapsed
+            self.stats['avg'].append(ds)
 
 if __name__ == "__main__":
     logger.basicConfig(filename="consumer-%d.log" % pid, format='%(asctime)s, %(message)s' ,level=logger.INFO)
