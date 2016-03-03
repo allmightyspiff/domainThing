@@ -67,6 +67,7 @@ class domainConsumer():
             time.sleep(600)
 
     def main(self):
+        logger.getLogger("elasticsearch").setLevel(logging.WARNING)
         self.channel = connection.channel()
         self.channel.queue_declare(queue='domains')
 
