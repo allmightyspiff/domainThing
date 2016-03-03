@@ -131,7 +131,7 @@ class domainConsumer():
         else:
             ds = 0
    
-        logger.info("consumed %s domains in %ss" % (domain_count, elapsed, ds))
+        logger.info("consumed %s domains in %s %sseconds" % (domain_count, elapsed, ds))
         if self.doStats:
             self.stats['domains'] = self.stats['domains'] + domain_count
             self.stats['endTime'] = datetime.now().isoformat()
