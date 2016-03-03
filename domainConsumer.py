@@ -135,7 +135,7 @@ class domainConsumer():
         if self.doStats:
             self.stats['domains'] = self.stats['domains'] + domain_count
             self.stats['endTime'] = datetime.now().isoformat()
-            self.stats['runningSeconds'] =self.stats['runningSeconds'] + elapsed
+            self.stats['runningSeconds'] =self.stats['runningSeconds'] + elapsed.total_seconds()
             self.stats['avg'].append(ds)
 
 if __name__ == "__main__":
