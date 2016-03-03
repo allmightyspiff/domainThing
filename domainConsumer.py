@@ -14,6 +14,7 @@ from multiprocessing import Process, current_process, active_children
 class domainConsumer():
 
     def __init__(self,indexName="domain-final"):
+        logger.getLogger("elasticsearch").setLevel(logger.WARNING)
         configFile = './config.cfg'
         config = configparser.ConfigParser()
         config.read(configFile)
@@ -43,8 +44,8 @@ class domainConsumer():
 
         self.es = elasticsearch.Elasticsearch([{'host':config.get('elasticsearch','host')}])  
 
-        sql = mysql.connector.connect(**my_config)
-        self.cursor = sql.cursor()
+        self.sql = mysql.connector.connect(**my_config)
+        self.cursor = self.sql.cursor()
         self.query = ("SELECT ip from ip_address_unique WHERE ip = %(int_ip)s LIMIT 1")
         self.doStats = 0
         self.index = indexName
@@ -67,16 +68,30 @@ class domainConsumer():
             time.sleep(600)
 
     def main(self):
-        logger.getLogger("elasticsearch").setLevel(logger.WARNING)
-        self.channel = connection.channel()
+        
         self.channel.queue_declare(queue='domains')
 
         self.channel.basic_consume(self.callback,queue='domains')
         self.channel.start_consuming()
 
+    def singleRun(self):
+
+        self.channel.queue_declare(queue='domains')
+        self.channel.basic_consume(self.callback,queue='domains')
+        try:
+            self.channel.start_consuming()
+        except KeyboardInterrupt:
+            self.channel.stop_consuming()
+        self.pika_conn.close()
+        logger.info("Start: %s" % (self.stats['startTime']))
+        logger.info("Ddomains: %s" % (self.stats['domains']))
+        logger.info("runningSeconds: %s" % (self.stats['runningSeconds']))
+        logger.info("End: %s" % (self.stats['endTime']))
+
     def callback(self, ch, method, properties, body):
         domains = json.loads(body)
         final_domain = []
+        main_start = datetime.now()
         for domain in domains:
 
             start = datetime.now()
@@ -88,7 +103,7 @@ class domainConsumer():
             self.cursor.execute(self.query,{ 'int_ip' : ip.value})
             # Need to fetch the results or else an exception gets thrown
             results = self.cursor.fetchall()
-            logger.info("%s, %s, %s"  % (domain['domain'], domain['ip'], str(ip.value)))
+            # logger.info("%s, %s, %s"  % (domain['domain'], domain['ip'], str(ip.value)))
 
             nownow = datetime.now()
             elapsed = nownow - start
@@ -102,9 +117,18 @@ class domainConsumer():
             self.es.index(index=self.index,doc_type="blog",body=json.dumps(domain))
 
         ch.basic_ack(delivery_tag = method.delivery_tag)
+        main_end = main_start = datetime.now()
+        elapsed = main_end - main_start
+        domain_count = len(domains)
+        if (elapsed.total_seconds() > 0):
+            ds = round(domain_count / elapsed.total_seconds())
+        else:
+            ds = 0
+        logger.info("resolved %s domains in %ss - %s d/s" % (domain_count, elapsed.total_seconds(), ds ))
         if self.doStats:
-            self.stats['domains'] = self.stats['domains'] + len(domains)
+            self.stats['domains'] = self.stats['domains'] + domain_count
             self.stats['endTime'] = datetime.now().isoformat()
+            self.stats['runningSeconds'] =self.stats['runningSeconds'] + elapsed.total_seconds() 
 
 if __name__ == "__main__":
     logger.basicConfig(filename="consumer-%d.log" % pid, format='%(asctime)s, %(message)s' ,level=logger.INFO)
