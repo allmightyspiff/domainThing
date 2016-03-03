@@ -77,6 +77,8 @@ class domainConsumer():
 
     def singleRun(self):
         self.doStats = 1
+        start = datetime.now()
+        self.stats['startTime'] = start
         self.channel.queue_declare(queue='domains')
         self.channel.basic_consume(self.callback,queue='domains')
         try:
@@ -118,7 +120,7 @@ class domainConsumer():
             self.es.index(index=self.index,doc_type="blog",body=json.dumps(domain))
 
         ch.basic_ack(delivery_tag = method.delivery_tag)
-        main_end = main_start = datetime.now()
+        main_end = datetime.now()
         elapsed = main_end - main_start
         domain_count = len(domains)
         micro_elapsed = elapsed.microseconds + (elapsed.seconds * 10**6)
