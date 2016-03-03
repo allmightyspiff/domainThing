@@ -90,7 +90,7 @@ class domainResolver():
             'avg': []
         }
 
-    def callback(ch, method, properties, body):
+    def callback(self,ch, method, properties, body):
         start = datetime.now()
         domains = json.loads(body)
         workQueue = Queue.Queue()
