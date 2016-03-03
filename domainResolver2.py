@@ -56,7 +56,7 @@ class domainThread(threading.Thread):
         domain['resolveTime'] = elapsed.total_seconds()
         domain['ipCreateTime'] = nownow.isoformat()
         domain['resolverHost'] = self.fqdn
-        logger.info("%s - %s - %s" % ( thisZone, zoneIp, self.threadId))
+        # logger.info("%s - %s - %s" % ( thisZone, zoneIp, self.threadId))
         workQueue.put(domain)
         return True
 
