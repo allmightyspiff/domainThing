@@ -7,8 +7,9 @@ import logging as logger
 if __name__ == "__main__":
     logger.basicConfig(format='%(asctime)s, %(message)s' ,level=logger.INFO)
     print("Getting some zone data")
-    reader = domainReader('verisign')
+    reader = domainReader('verisign', 1)
     reader.getZoneFiles()
+    reader.printStats()
     print("Starting to resolve")
     resolver = domainResolver()
     resolver.singleRun()

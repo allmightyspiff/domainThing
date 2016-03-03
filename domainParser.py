@@ -17,7 +17,7 @@ from multiprocessing import Process, current_process, active_children
 class domainReader():
 
 
-    def __init__(self, domainType):
+    def __init__(self, domainType, doStats=0):
         self.start = datetime.now()
         configFile = './config.cfg'
         config = configparser.ConfigParser()
@@ -40,6 +40,14 @@ class domainReader():
         self.channel.queue_declare(queue='domain-queue')
         self.regex = re.compile(config.get(domainType,'regex'))
         self.path = config.get(domainType,'path')
+        self.doStats = doStats
+        self.stats = {
+            'domains' : 0,
+            'startTime': 0,
+            'endTime' : 0,
+            'runningSeconds': 0,
+            'avg': []
+        }
 
 
     def __exit__(self):
@@ -61,10 +69,12 @@ class domainReader():
         lineNumber = 0
         workQueue = []
         queueLength = 0
+        domainCount = 0
         f = open(filename,'r')
         # Verisign zones don't end with the TLD
         # we can figure this out from the filename though
-        nownow = datetime.now()
+        start = datetime.now()
+        self.stats['startTime'] = start
         tld = re.search("\S+\/(\S+)\.zone$", filename)
         # of course .org zone has to be difficult
         orgzone = './zones/org/org.zone'
@@ -94,6 +104,7 @@ class domainReader():
                 }
                 workQueue.append(zoneObject)
                 queueLength = queueLength + 1
+                domainCount = domainCount + 1
 
             if  queueLength > 25:
                 self.uploadQueue(workQueue)
@@ -102,8 +113,21 @@ class domainReader():
                 workQueue = []
                 # Sleeping to not overload queue
                 # need to replace with something more aware
+
+
         self.uploadQueue(workQueue)
         nownow = datetime.now()
+
+        if self.doStats:
+            elapsed = nownow - start
+            if (elapsed.total_seconds() > 0):
+                ds = round(domainCount / elapsed.total_seconds())
+            else:
+                ds = 0
+            self.stats['domains'] = self.stats['domains'] + domainCount
+            self.stats['runningSeconds'] =self.stats['runningSeconds'] + elapsed.total_seconds()
+            self.stats['avg'].append(ds)
+            self.stats['endTime'] = nownow.isoformat()
         logger.info("%s - Finished with %s" % (nownow.isoformat(),filename))
 
 
@@ -111,6 +135,13 @@ class domainReader():
         nownow = datetime.now()
         message = json.dumps(workQueue)
         self.channel.basic_publish(exchange='', routing_key='domain-queue', body=message)
+
+    def printStats(self):
+        logger.info("Start: %s" % (self.stats['startTime']))
+        logger.info("Ddomains: %s" % (self.stats['domains']))
+        logger.info("runningSeconds: %s" % (self.stats['runningSeconds']))
+        logger.info("Average domains/s %s" % (self.stats['avg']))
+        logger.info("End: %s" % (self.stats['endTime']))
 
 
 if __name__ == "__main__":
