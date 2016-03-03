@@ -53,7 +53,8 @@ class domainConsumer():
         self.stats = {
             'domains' : 0,
             'startTime' : 0,
-            'endTime' : 0
+            'endTime' : 0,
+            'runningSeconds': 0
         }
 
     def gogo(self, pid):
@@ -75,7 +76,7 @@ class domainConsumer():
         self.channel.start_consuming()
 
     def singleRun(self):
-
+        self.doStats = 1
         self.channel.queue_declare(queue='domains')
         self.channel.basic_consume(self.callback,queue='domains')
         try:
@@ -85,7 +86,7 @@ class domainConsumer():
         self.pika_conn.close()
         logger.info("Start: %s" % (self.stats['startTime']))
         logger.info("Ddomains: %s" % (self.stats['domains']))
-        logger.info("runningSeconds: %s" % (self.stats['runningSeconds']))
+        logger.info("runningMicroSeconds: %s" % (self.stats['runningSeconds']))
         logger.info("End: %s" % (self.stats['endTime']))
 
     def callback(self, ch, method, properties, body):
@@ -120,15 +121,13 @@ class domainConsumer():
         main_end = main_start = datetime.now()
         elapsed = main_end - main_start
         domain_count = len(domains)
-        if (elapsed.total_seconds() > 0):
-            ds = round(domain_count / elapsed.total_seconds())
-        else:
-            ds = 0
-        logger.info("resolved %s domains in %ss - %s d/s" % (domain_count, elapsed.total_seconds(), ds ))
+        micro_elapsed = elapsed.microseconds + (elapsed.seconds * 10**6)
+   
+        logger.info("resolved %s domains in %ss" % (domain_count, micro_elapsed ))
         if self.doStats:
             self.stats['domains'] = self.stats['domains'] + domain_count
             self.stats['endTime'] = datetime.now().isoformat()
-            self.stats['runningSeconds'] =self.stats['runningSeconds'] + elapsed.total_seconds() 
+            self.stats['runningSeconds'] =self.stats['runningSeconds'] + micro_elapsed
 
 if __name__ == "__main__":
     logger.basicConfig(filename="consumer-%d.log" % pid, format='%(asctime)s, %(message)s' ,level=logger.INFO)
