@@ -127,7 +127,7 @@ class domainConsumer():
         domain_count = len(domains)
         elapsed = nownow - start
         if (elapsed.total_seconds() > 0):
-            ds = round(threadId / elapsed.total_seconds())
+            ds = round(domain_count / elapsed.total_seconds())
         else:
             ds = 0
    
