@@ -108,7 +108,7 @@ class domainReader():
                 queueLength = queueLength + 1
                 domainCount = domainCount + 1
 
-            if  queueLength > self.packetSize:
+            if  queueLength >= self.packetSize:
                 self.uploadQueue(workQueue)
                 logger.info("%s - %s" % (lineNumber, thisZone))
                 queueLength = 0
