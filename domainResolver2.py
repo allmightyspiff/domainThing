@@ -66,6 +66,7 @@ class domainResolver():
         config = configparser.ConfigParser()
         config.read(configFile)
 
+        self.packetSize = config.getint('domainParser','packetSize')
         pika_cred = pika.PlainCredentials(
                         config.get('rabbitmq','user'), 
                         config.get('rabbitmq','password')
@@ -121,6 +122,9 @@ class domainResolver():
             self.stats['avg'].append(ds)
             self.stats['endTime'] = nownow.isoformat()
 
+        if threadId < self.packetSize:
+            raise IOError
+
     def gogo(self,pid):
         while True:
             try:
@@ -144,6 +148,8 @@ class domainResolver():
         try:
             self.channel.start_consuming()
         except KeyboardInterrupt:
+            self.channel.stop_consuming()
+        except IOError:
             self.channel.stop_consuming()
         self.pika_conn.close()
 

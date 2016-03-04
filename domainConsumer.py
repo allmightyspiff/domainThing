@@ -18,7 +18,7 @@ class domainConsumer():
         configFile = './config.cfg'
         config = configparser.ConfigParser()
         config.read(configFile)
-
+        self.packetSize = config.getint('domainParser','packetSize')
         pika_cred = pika.PlainCredentials(
                         config.get('rabbitmq','user'), 
                         config.get('rabbitmq','password')
@@ -86,6 +86,8 @@ class domainConsumer():
             self.channel.start_consuming()
         except KeyboardInterrupt:
             self.channel.stop_consuming()
+        except IOError:
+            self.channel.stop_consuming()
         self.pika_conn.close()
         logger.info("Start: %s" % (self.stats['startTime']))
         logger.info("Ddomains: %s" % (self.stats['domains']))
@@ -137,6 +139,9 @@ class domainConsumer():
             self.stats['endTime'] = datetime.now().isoformat()
             self.stats['runningSeconds'] =self.stats['runningSeconds'] + elapsed.total_seconds()
             self.stats['avg'].append(ds)
+
+        if domain_count < self.packetSize:
+            raise IOError
 
 if __name__ == "__main__":
     logger.basicConfig(filename="consumer-%d.log" % pid, format='%(asctime)s, %(message)s' ,level=logger.INFO)

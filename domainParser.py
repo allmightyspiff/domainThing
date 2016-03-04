@@ -23,6 +23,8 @@ class domainReader():
         config = configparser.ConfigParser()
         config.read(configFile)
 
+        self.packetSize = config.getint('domainParser','packetSize')
+
 
         logger.info("domainReader Starting up")
         credentials = pika.PlainCredentials(
@@ -106,7 +108,7 @@ class domainReader():
                 queueLength = queueLength + 1
                 domainCount = domainCount + 1
 
-            if  queueLength > 25:
+            if  queueLength > self.packetSize:
                 self.uploadQueue(workQueue)
                 logger.info("%s - %s" % (lineNumber, thisZone))
                 queueLength = 0
