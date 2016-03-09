@@ -5,7 +5,7 @@ import os.path
 import os
 import sys
 from pprint import pprint as pp
-import pika
+
 import json
 from datetime import datetime, timedelta
 import logging as logger
@@ -13,6 +13,57 @@ import time
 import configparser 
 from multiprocessing import Process, current_process, active_children
 
+
+class pikaQueue():
+
+    def __init__(self, config):
+        import pika
+        credentials = pika.PlainCredentials(
+                    config.get('rabbitmq','user'), 
+                    config.get('rabbitmq','password')
+                )
+        connection = pika.BlockingConnection(pika.ConnectionParameters(
+                    config.get('rabbitmq','host'), 
+                    config.getint('rabbitmq','port'), 
+                    config.get('rabbitmq','vhost'), 
+                    credentials, 
+                    socket_timeout=15,
+                    ssl=True)
+                )
+        self.channel = connection.channel()
+        self.channel.queue_declare(queue='domain-queue')
+
+    def sendMessage(self, message):
+        logger.info("Sending message")
+        self.channel.basic_publish(exchange='', routing_key='domain-queue', body=message)
+
+    def close(self):
+        self.connection.close()
+
+class mqlightQueue():
+
+    def __init__(self, config):
+        import mqlight
+        mqService = "amqps://hdaa7cZMddEc:ke=6.YeW(6sh@mqlightprod-ag-00002a.services.dal.bluemix.net:2906"
+        mqClient = "parser_123"
+        self.client = mqlight.Client(
+            service=mqService,
+            client=mqClient
+            )
+
+    def sendMessage(self, message):
+        logger.info("Sending message %s" % message[0:15])
+        options = {
+            'qos': mqlight.QOS_AT_LEAST_ONCE,
+            'ttl': 9999
+        }
+        self.client.send(
+            topic="domain-queue",
+            data=message,
+            options=options
+        )
+    def close(self):
+        self.client.stop()
 
 class domainReader():
 
@@ -24,22 +75,9 @@ class domainReader():
         config.read(configFile)
 
         self.packetSize = config.getint('domainParser','packetSize')
-
-
         logger.info("domainReader Starting up")
-        credentials = pika.PlainCredentials(
-                    config.get('rabbitmq','user'), 
-                    config.get('rabbitmq','password')
-                )
-        connection = pika.BlockingConnection(pika.ConnectionParameters(
-                    config.get('rabbitmq','host'), 
-                    config.getint('rabbitmq','port'), 
-                    config.get('rabbitmq','vhost'), 
-                    credentials, 
-                    socket_timeout=15)
-                )
-        self.channel = connection.channel()
-        self.channel.queue_declare(queue='domain-queue')
+
+        self.q = mqlightQueue(config)
         self.regex = re.compile(config.get(domainType,'regex'))
         self.path = config.get(domainType,'path')
         self.doStats = doStats
@@ -136,11 +174,11 @@ class domainReader():
     def uploadQueue(self, workQueue):
         nownow = datetime.now()
         message = json.dumps(workQueue)
-        self.channel.basic_publish(exchange='', routing_key='domain-queue', body=message)
+        self.q.send(message)
 
     def printStats(self):
         logger.info("Start: %s" % (self.stats['startTime']))
-        logger.info("Ddomains: %s" % (self.stats['domains']))
+        logger.info("Domains: %s" % (self.stats['domains']))
         logger.info("runningSeconds: %s" % (self.stats['runningSeconds']))
         logger.info("Average domains/s %s" % (self.stats['avg']))
         logger.info("End: %s" % (self.stats['endTime']))
