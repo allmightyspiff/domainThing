@@ -12,12 +12,13 @@ import logging as logger
 import time
 import configparser 
 from multiprocessing import Process, current_process, active_children
-
+import mqlight
+import pika
 
 class pikaQueue():
 
     def __init__(self, config):
-        import pika
+
         credentials = pika.PlainCredentials(
                     config.get('rabbitmq','user'), 
                     config.get('rabbitmq','password')
@@ -43,7 +44,7 @@ class pikaQueue():
 class mqlightQueue():
 
     def __init__(self, config):
-        import mqlight
+
         self.options = {
             'qos': mqlight.QOS_AT_LEAST_ONCE,
             'ttl': 9999
@@ -52,7 +53,8 @@ class mqlightQueue():
         mqClient = "parser_123"
         self.client = mqlight.Client(
             service=mqService,
-            client_id=mqClient
+            client_id=mqClient,
+            on_state_change=self.stateChanged
         )
 
     def sendMessage(self, message):
@@ -61,10 +63,26 @@ class mqlightQueue():
         self.client.send(
             topic="domain-queue",
             data=message,
-            options=self.options
+            options=self.options,
+            on_sent=self.on_sent
         )
     def close(self):
         self.client.stop()
+
+    def stateChanged(self, client, state, message='None'):
+        if state == mqlight.ERROR:
+            logger.info("Hit an error %s" % message)
+            self.close()
+        else:
+            logger.info("State changed to %s" % state)
+
+    def on_sent(self, error, topic, data, options):
+        if error:
+            logger.info("ERROR: %s" % error)
+        else:
+            logger.info("Sent to %s successfully" % topic)
+
+
 
 class domainReader():
 
