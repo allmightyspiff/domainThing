@@ -14,6 +14,7 @@ import configparser
 from multiprocessing import Process, current_process, active_children
 import mqlight
 import pika
+import threading
 
 class pikaQueue():
 
@@ -54,18 +55,20 @@ class mqlightQueue():
         self.client = mqlight.Client(
             service=mqService,
             client_id=mqClient,
-            on_state_change=self.stateChanged
+            on_state_changed=self.stateChanged
         )
+        self.lock = threading.RLock()
+        self.thread = threading.Event()
 
     def sendMessage(self, message):
-        logger.info("Sending message %s" % message[0:15])
+        with self.lock:
+            self.thread.clear()
+            logger.info("Sending message %s" % message[0:15])
 
-        self.client.send(
-            topic="domain-queue",
-            data=message,
-            options=self.options,
-            on_sent=self.on_sent
-        )
+            if self.client.send(topic="domain-queue",data=message,options=self.options,on_sent=self.on_sent):
+                return
+            else:
+                self.thread.wait()
     def close(self):
         self.client.stop()
 
@@ -73,6 +76,8 @@ class mqlightQueue():
         if state == mqlight.ERROR:
             logger.info("Hit an error %s" % message)
             self.close()
+        elif state == mqlight.DRAIN:
+            self.thread.set()
         else:
             logger.info("State changed to %s" % state)
 
