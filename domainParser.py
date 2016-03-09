@@ -48,8 +48,8 @@ class mqlightQueue():
         mqClient = "parser_123"
         self.client = mqlight.Client(
             service=mqService,
-            client=mqClient
-            )
+            client_id=mqClient
+        )
 
     def sendMessage(self, message):
         logger.info("Sending message %s" % message[0:15])
