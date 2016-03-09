@@ -44,6 +44,10 @@ class mqlightQueue():
 
     def __init__(self, config):
         import mqlight
+        self.options = {
+            'qos': mqlight.QOS_AT_LEAST_ONCE,
+            'ttl': 9999
+        }
         mqService = "amqps://hdaa7cZMddEc:ke=6.YeW(6sh@mqlightprod-ag-00002a.services.dal.bluemix.net:2906"
         mqClient = "parser_123"
         self.client = mqlight.Client(
@@ -53,14 +57,11 @@ class mqlightQueue():
 
     def sendMessage(self, message):
         logger.info("Sending message %s" % message[0:15])
-        options = {
-            'qos': mqlight.QOS_AT_LEAST_ONCE,
-            'ttl': 9999
-        }
+
         self.client.send(
             topic="domain-queue",
             data=message,
-            options=options
+            options=self.options
         )
     def close(self):
         self.client.stop()
@@ -174,7 +175,7 @@ class domainReader():
     def uploadQueue(self, workQueue):
         nownow = datetime.now()
         message = json.dumps(workQueue)
-        self.q.send(message)
+        self.q.sendMessage(message)
 
     def printStats(self):
         logger.info("Start: %s" % (self.stats['startTime']))
