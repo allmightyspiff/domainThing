@@ -77,7 +77,7 @@ class mqlightQueue():
 
     def close(self):
         self.client.stop()
-        self.thread.exit()
+        # self.thread.exit()
 
     def stateChanged(self, client, state, message='None'):
         if state == mqlight.ERROR:
