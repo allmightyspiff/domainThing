@@ -29,7 +29,7 @@ class mqlightQueue():
         logger.info("Shutting mq down")
         self.close()
 
-    def started(self):
+    def started(self, client):
         logger.info("Ready to go!")
         self.ready=True
 
