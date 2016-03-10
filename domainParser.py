@@ -60,22 +60,29 @@ class mqlightQueue():
         self.lock = threading.RLock()
         self.thread = threading.Event()
 
+    def __exit__(self):
+        logger.info("Shutting mq down")
+        self.close()
+
+
     def sendMessage(self, message):
         with self.lock:
             self.thread.clear()
-            logger.info("Sending message %s" % message[0:15])
+            logger.info("Sending message %s" % message[0:25])
 
             if self.client.send(topic="domain-queue",data=message,options=self.options,on_sent=self.on_sent):
                 return
             else:
                 self.thread.wait()
+
     def close(self):
         self.client.stop()
+        self.thread.exit()
 
     def stateChanged(self, client, state, message='None'):
         if state == mqlight.ERROR:
             logger.info("Hit an error %s" % message)
-            self.close()
+            client.close()
         elif state == mqlight.DRAIN:
             self.thread.set()
         else:
@@ -116,12 +123,11 @@ class domainReader():
 
     def __exit__(self):
         logger.info("domainReader Shutting down")
-        self.connection.close()
+        self.q.close()
 
     def getZoneFiles(self, startLine=0):
         logger.info("Looing in %s" % (self.path))
         for root, dirs, files in os.walk(self.path, topdown=True):
-            logger.info("fucks")
             pp(files)
             for name in files:
                 logger.info("Found FILE %s" % name)
