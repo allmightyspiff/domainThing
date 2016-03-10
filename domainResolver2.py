@@ -70,6 +70,10 @@ class domainResolver():
         self.packetSize = config.getint('domainParser','packetSize')
 
         self.q = mqlightQueue(config)
+        while not self.q.ready:
+            logger.info("Not ready yet")
+            time.sleep(1)
+
         self.doStats = 0
         self.stats = {
             'domains' : 0,

@@ -12,12 +12,15 @@ class mqlightQueue():
             'qos': mqlight.QOS_AT_LEAST_ONCE,
             'ttl': 9999
         }
+        self.ready = False
         mqService = "amqps://hdaa7cZMddEc:ke=6.YeW(6sh@mqlightprod-ag-00002a.services.dal.bluemix.net:2906"
         mqClient = "parser_123"
         self.client = mqlight.Client(
             service=mqService,
             client_id=mqClient,
-            on_state_changed=self.stateChanged
+            on_state_changed=self.stateChanged,
+            on_started=self.started
+
         )
         self.lock = threading.RLock()
         self.thread = threading.Event()
@@ -25,6 +28,10 @@ class mqlightQueue():
     def __exit__(self):
         logger.info("Shutting mq down")
         self.close()
+
+    def started(self):
+        logger.info("Ready to go!")
+        self.ready=True
 
 
     def sendMessage(self, message, topic):
@@ -65,6 +72,7 @@ class mqlightQueue():
         myOptions['credit'] = 1
         self.client.subscribe(
             topic_pattern = topic,
+            share = None,
             options = self.options,
             on_message=callback
         )
