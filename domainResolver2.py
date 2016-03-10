@@ -176,7 +176,7 @@ class domainResolver():
         self.q.subscribe('domain-queue',self.callbackMQL)
         while self.q.ready:
             logger.info("sleeping a sec")
-            sleep(1)
+            time.sleep(1)
         self.q.close()
 
         logger.info("Start: %s" % (self.stats['startTime']))
