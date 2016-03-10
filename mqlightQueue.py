@@ -1,7 +1,7 @@
 import threading
 import mqlight
 import configparser 
-
+import os
 import logging as logger
 
 class mqlightQueue():
@@ -14,7 +14,7 @@ class mqlightQueue():
         }
         self.ready = False
         mqService = "amqps://hdaa7cZMddEc:ke=6.YeW(6sh@mqlightprod-ag-00002a.services.dal.bluemix.net:2906"
-        mqClient = "parser_123"
+        mqClient = config['clientName']
         self.client = mqlight.Client(
             service=mqService,
             client_id=mqClient,

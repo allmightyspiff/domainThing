@@ -11,6 +11,7 @@ import Queue
 import threading
 import configparser
 from mqlightQueue import mqlightQueue
+import os
 
 
 class domainThread(threading.Thread):
@@ -68,7 +69,7 @@ class domainResolver():
         config.read(configFile)
 
         self.packetSize = config.getint('domainParser','packetSize')
-
+        config['clientName'] = 'resolver_' + str(os.getpid)
         self.q = mqlightQueue(config)
         while not self.q.ready:
             logger.info("Not ready yet")
