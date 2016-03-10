@@ -51,7 +51,6 @@ class mqlightQueue():
     def stateChanged(self, client, state, message='None'):
         if state == mqlight.ERROR:
             logger.info("Hit an error %s" % message)
-            self.thread.set()
             self.close()
             return False
         elif state == mqlight.DRAIN:
