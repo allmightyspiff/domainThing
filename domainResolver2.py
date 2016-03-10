@@ -10,7 +10,7 @@ from multiprocessing import Process, current_process, active_children
 import Queue
 import threading
 import configparser
-import mqlightQueue
+from mqlightQueue import mqlightQueue
 
 
 class domainThread(threading.Thread):
