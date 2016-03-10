@@ -69,8 +69,8 @@ class domainResolver():
         config.read(configFile)
 
         self.packetSize = config.getint('domainParser','packetSize')
-        config['clientName'] = 'resolver_' + str(os.getpid)
-        self.q = mqlightQueue(config)
+        clientName = 'parser_' + str(os.getpid())
+        self.q = mqlightQueue(config,clientName)
         while not self.q.ready:
             logger.info("Not ready yet")
             time.sleep(1)

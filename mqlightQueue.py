@@ -6,7 +6,7 @@ import logging as logger
 
 class mqlightQueue():
 
-    def __init__(self, config):
+    def __init__(self, config, clientName):
 
         self.options = {
             'qos': mqlight.QOS_AT_LEAST_ONCE,
@@ -14,7 +14,7 @@ class mqlightQueue():
         }
         self.ready = False
         mqService = "amqps://hdaa7cZMddEc:ke=6.YeW(6sh@mqlightprod-ag-00002a.services.dal.bluemix.net:2906"
-        mqClient = config['clientName']
+        mqClient = clientName
         self.client = mqlight.Client(
             service=mqService,
             client_id=mqClient,

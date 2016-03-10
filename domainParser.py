@@ -26,8 +26,8 @@ class domainReader():
         self.packetSize = config.getint('domainParser','packetSize')
         logger.info("domainReader Starting up")
 
-        config['clientName'] = 'parser_' + str(os.getpid)
-        self.q = mqlightQueue(config)
+        clientName = 'parser_' + str(os.getpid())
+        self.q = mqlightQueue(config,clientName)
         self.regex = re.compile(config.get(domainType,'regex'))
         self.path = config.get(domainType,'path')
         self.doStats = doStats
