@@ -172,11 +172,14 @@ class domainResolver():
         #     self.channel.stop_consuming()
         #     self.channel.stop_consuming()
 
-
-        self.q.subscribe('domain-queue',self.callbackMQL)
-        while self.q.ready:
-            logger.info("sleeping a sec")
-            time.sleep(1)
+        try:
+            self.q.subscribe('domain-queue',self.callbackMQL)
+            while self.q.ready:
+                logger.info("sleeping a sec")
+                time.sleep(1)
+        except KeyboardInterrupt:
+            self.q.close()
+            exit(0)
         self.q.close()
 
         logger.info("Start: %s" % (self.stats['startTime']))
