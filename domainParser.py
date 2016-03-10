@@ -68,10 +68,10 @@ class mqlightQueue():
     def sendMessage(self, message):
         with self.lock:
             self.thread.clear()
-            logger.info("Sending message %s" % message[0:25])
+            logger.info("Sending message %s" % message[0:45])
 
             if self.client.send(topic="domain-queue",data=message,options=self.options,on_sent=self.on_sent):
-                return
+                return True
             else:
                 self.thread.wait()
 
@@ -91,8 +91,10 @@ class mqlightQueue():
     def on_sent(self, error, topic, data, options):
         if error:
             logger.info("ERROR: %s" % error)
+            return False
         else:
             logger.info("Sent to %s successfully" % topic)
+            return True
 
 
 
@@ -132,6 +134,7 @@ class domainReader():
             for name in files:
                 logger.info("Found FILE %s" % name)
                 self.queueDomains(self.regex,os.path.join(root, name), startLine)
+        self.q.close()
 
 
     def queueDomains(self,regex, filename, startLine):
