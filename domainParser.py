@@ -12,91 +12,7 @@ import logging as logger
 import time
 import configparser 
 from multiprocessing import Process, current_process, active_children
-import mqlight
-import pika
-import threading
-
-class pikaQueue():
-
-    def __init__(self, config):
-
-        credentials = pika.PlainCredentials(
-                    config.get('rabbitmq','user'), 
-                    config.get('rabbitmq','password')
-                )
-        connection = pika.BlockingConnection(pika.ConnectionParameters(
-                    config.get('rabbitmq','host'), 
-                    config.getint('rabbitmq','port'), 
-                    config.get('rabbitmq','vhost'), 
-                    credentials, 
-                    socket_timeout=15,
-                    ssl=True)
-                )
-        self.channel = connection.channel()
-        self.channel.queue_declare(queue='domain-queue')
-
-    def sendMessage(self, message):
-        logger.info("Sending message")
-        self.channel.basic_publish(exchange='', routing_key='domain-queue', body=message)
-
-    def close(self):
-        self.connection.close()
-
-class mqlightQueue():
-
-    def __init__(self, config):
-
-        self.options = {
-            'qos': mqlight.QOS_AT_LEAST_ONCE,
-            'ttl': 9999
-        }
-        mqService = "amqps://hdaa7cZMddEc:ke=6.YeW(6sh@mqlightprod-ag-00002a.services.dal.bluemix.net:2906"
-        mqClient = "parser_123"
-        self.client = mqlight.Client(
-            service=mqService,
-            client_id=mqClient,
-            on_state_changed=self.stateChanged
-        )
-        self.lock = threading.RLock()
-        self.thread = threading.Event()
-
-    def __exit__(self):
-        logger.info("Shutting mq down")
-        self.close()
-
-
-    def sendMessage(self, message):
-        with self.lock:
-            self.thread.clear()
-            logger.info("Sending message %s" % message[0:45])
-
-            if self.client.send(topic="domain-queue",data=message,options=self.options,on_sent=self.on_sent):
-                return True
-            else:
-                self.thread.wait()
-
-    def close(self):
-        self.client.stop()
-        # self.thread.exit()
-
-    def stateChanged(self, client, state, message='None'):
-        if state == mqlight.ERROR:
-            logger.info("Hit an error %s" % message)
-            client.close()
-        elif state == mqlight.DRAIN:
-            self.thread.set()
-        else:
-            logger.info("State changed to %s" % state)
-
-    def on_sent(self, error, topic, data, options):
-        if error:
-            logger.info("ERROR: %s" % error)
-            return False
-        else:
-            logger.info("Sent to %s successfully" % topic)
-            return True
-
-
+import mqlightQueue
 
 class domainReader():
 
@@ -207,7 +123,7 @@ class domainReader():
     def uploadQueue(self, workQueue):
         nownow = datetime.now()
         message = json.dumps(workQueue)
-        self.q.sendMessage(message)
+        self.q.sendMessage(message,'domain-queue')
 
     def printStats(self):
         logger.info("Start: %s" % (self.stats['startTime']))
