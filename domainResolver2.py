@@ -113,7 +113,7 @@ class domainResolver():
             updateStats(start, len(domains), nownow)
 
         if len(domains) < self.packetSize:
-            raise IOError
+            self.q.ready = False 
 
     def resolveDomains(self, domains):
         start = datetime.now()
@@ -172,14 +172,12 @@ class domainResolver():
         #     self.channel.stop_consuming()
         #     self.channel.stop_consuming()
 
-        try:
-            self.q.subscribe('domain-queue',self.callbackMQL)
-        except KeyboardInterrupt:
-            self.q.close()
-        except IOError:
-            self.q.close()
 
-
+        self.q.subscribe('domain-queue',self.callbackMQL)
+        while self.q.ready:
+            logger.info("sleeping a sec")
+            sleep(1)
+        self.q.close()
 
         logger.info("Start: %s" % (self.stats['startTime']))
         logger.info("Ddomains: %s" % (self.stats['domains']))
