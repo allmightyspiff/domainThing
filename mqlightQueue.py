@@ -52,7 +52,7 @@ class mqlightQueue():
         if state == mqlight.ERROR:
             logger.info("Hit an error %s" % message)
             self.thread.set()
-            client.stop()
+            self.close()
             return False
         elif state == mqlight.DRAIN:
             self.thread.set()
