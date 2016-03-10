@@ -70,8 +70,6 @@ class domainResolver():
         self.packetSize = config.getint('domainParser','packetSize')
 
         self.q = mqlightQueue(config)
-
-        self.channel = self.pika_conn.channel()
         self.doStats = 0
         self.stats = {
             'domains' : 0,
