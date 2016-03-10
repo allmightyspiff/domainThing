@@ -12,7 +12,7 @@ import logging as logger
 import time
 import configparser 
 from multiprocessing import Process, current_process, active_children
-import mqlightQueue
+from mqlightQueue import mqlightQueue
 
 class domainReader():
 
