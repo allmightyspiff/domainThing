@@ -10,7 +10,7 @@ class mqlightQueue():
 
         self.options = {
             'qos': mqlight.QOS_AT_LEAST_ONCE,
-            'ttl': 9999
+            'ttl': 999999
         }
         self.ready = False
         mqService = "amqps://hdaa7cZMddEc:ke=6.YeW(6sh@mqlightprod-ag-00002a.services.dal.bluemix.net:2906"

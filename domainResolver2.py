@@ -103,7 +103,7 @@ class domainResolver():
     def callbackMQL(self, type, body, delivery):
         start = datetime.now()
         domains = json.loads(body)
-        # logger.info("Got %s domains" % len(domains))
+        logger.info("Got %s domains" % len(domains))
         message = self.resolveDomains(domains)
 
         self.q.send('domains', message)
