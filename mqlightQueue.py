@@ -13,7 +13,7 @@ class mqlightQueue():
             'ttl': 999999
         }
         self.ready = False
-        mqService = "amqps://hdaa7cZMddEc:ke=6.YeW(6sh@mqlightprod-ag-00002a.services.dal.bluemix.net:2906"
+        mqService = "amqps://ch@mqlightprod-ag-00002a.services.dal.bluemix.net:2906"
         mqClient = clientName
         self.client = mqlight.Client(
             service=mqService,
