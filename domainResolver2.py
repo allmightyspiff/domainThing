@@ -69,10 +69,12 @@ class domainResolver():
         config.read(configFile)
 
         self.packetSize = config.getint('domainParser','packetSize')
-        clientName = 'parser_' + str(os.getpid())
+        logger.info("Packet size is: %s" % self.packetSize)
+        # clientName = 'resolver_' + str(os.getpid())
+        clientName = 'resolver_000' 
         self.q = mqlightQueue(config,clientName)
         while not self.q.ready:
-            logger.info("Not ready yet")
+            logger.info("RESOLVER: Not ready yet")
             time.sleep(1)
 
         self.doStats = 0
@@ -95,27 +97,31 @@ class domainResolver():
         nownow = datetime.now()
 
         if self.doStats:
-            updateStats(start, len(domains), nownow)
+            self.updateStats(start, len(domains), nownow)
 
         if len(domains) < self.packetSize:
             raise IOError
+        
 
-    def callbackMQL(self, type, body, delivery):
+    def callbackMQL(self, message_type, data, delivery):
+        logger.info(">>>>>>>>>>>>>>>>>>>>>>>>>CALLBACKMQL")
         start = datetime.now()
-        domains = json.loads(body)
+        domains = json.loads(data)
         logger.info("Got %s domains" % len(domains))
         message = self.resolveDomains(domains)
 
-        self.q.send('domains', message)
+        self.q.sendMessage(message,'domains')
         delivery['message']['confirm_delivery']()
         nownow = datetime.now()
 
         if self.doStats:
-            updateStats(start, len(domains), nownow)
+            self.updateStats(start, len(domains), nownow)
 
         if len(domains) < self.packetSize:
+            self.printStats()
             self.q.ready = False 
-
+        logger.info("<<<<<<<<<<<<<<<<<<<<<<<<<<CALLBACKMQL")
+ 
     def resolveDomains(self, domains):
         start = datetime.now()
         workQueue = Queue.Queue()
@@ -130,6 +136,7 @@ class domainResolver():
             domain = workQueue.get()
             fakeQueue.append(domain)
 
+        logger.info("RESOLVED %s domains" % threadId)
         message = json.dumps(fakeQueue)
         return message
 
@@ -144,7 +151,7 @@ class domainResolver():
         self.stats['domains'] = self.stats['domains'] + domainCount
         self.stats['runningSeconds'] =self.stats['runningSeconds'] + elapsed.total_seconds()
         self.stats['avg'].append(ds)
-        self.stats['endTime'] = nownow.isoformat()
+        self.stats['endTime'] = endTime.isoformat()
 
 
     def gogo(self,pid):
@@ -175,16 +182,18 @@ class domainResolver():
 
         try:
             self.q.subscribe('domain-queue',self.callbackMQL)
-            while self.q.ready:
-                logger.info("sleeping a sec")
-                time.sleep(1)
+
+
         except KeyboardInterrupt:
+            self.q.unsubscribe('domain-queue')
             self.q.close()
             exit(0)
-        self.q.close()
+        # self.q.close()
 
+
+    def printStats(self):
         logger.info("Start: %s" % (self.stats['startTime']))
-        logger.info("Ddomains: %s" % (self.stats['domains']))
+        logger.info("Domains: %s" % (self.stats['domains']))
         logger.info("runningSeconds: %s" % (self.stats['runningSeconds']))
         logger.info("Average domains/s %s" % (self.stats['avg']))
         logger.info("End: %s" % (self.stats['endTime']))

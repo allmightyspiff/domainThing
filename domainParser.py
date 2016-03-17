@@ -26,8 +26,11 @@ class domainReader():
         self.packetSize = config.getint('domainParser','packetSize')
         logger.info("domainReader Starting up")
 
-        clientName = 'parser_' + str(os.getpid())
+        # clientName = 'parser_' + str(os.getpid())
+        clientName = 'parser_0000' 
         self.q = mqlightQueue(config,clientName)
+
+
         self.regex = re.compile(config.get(domainType,'regex'))
         self.path = config.get(domainType,'path')
         self.doStats = doStats
@@ -38,6 +41,7 @@ class domainReader():
             'runningSeconds': 0,
             'avg': []
         }
+
 
 
     def __exit__(self):
@@ -51,7 +55,11 @@ class domainReader():
             for name in files:
                 logger.info("Found FILE %s" % name)
                 self.queueDomains(self.regex,os.path.join(root, name), startLine)
-        self.q.close()
+        # self.q.close()
+        if self.doStats:
+            self.printStats()
+            self.q.close()
+
 
 
     def queueDomains(self,regex, filename, startLine):
