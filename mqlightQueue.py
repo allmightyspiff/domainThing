@@ -13,12 +13,13 @@ class mqlightQueue():
             'ttl': 999999
         }
         self.ready = False
-        user = ""
-        password = ""
+        user = "N6KqE6X3MFvV"
+        password = "/B/G%d=j8XT8"
         security_options = {}
-        security_options['property_user'] = user
-        security_options['property_password'] = password
-        mqService = "amqps://mqlightprod-ag-00002a.services.dal.bluemix.net:2906"
+        security_options['property_user'] = config.get('rabbitmq','user').__str__()
+        security_options['property_password'] = config.get('rabbitmq','password').__str__()
+        mqService = config.get('rabbitmq','host').__str__()
+        logger.info("HOST: %s - %s -%s" % (mqService,security_options['property_user'], security_options['property_password']))
         mqClient = clientName
         self.client = mqlight.Client(
             service=mqService,
@@ -55,7 +56,7 @@ class mqlightQueue():
 
     def close(self):
         with self.lock:
-            self.thread.clear()
+            self.thread.clear
             logger.info("Closing the connection")
             self.client.stop()
         # self.thread.exit()
