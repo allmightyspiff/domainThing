@@ -13,10 +13,16 @@ class mqlightQueue():
             'ttl': 999999
         }
         self.ready = False
-        mqService = "amqps://ch@mqlightprod-ag-00002a.services.dal.bluemix.net:2906"
+        user = "N6KqE6X3MFvV"
+        password = "/B/G%d=j8XT8"
+        security_options = {}
+        security_options['property_user'] = user
+        security_options['property_password'] = password
+        mqService = "amqps://mqlightprod-ag-00002a.services.dal.bluemix.net:2906"
         mqClient = clientName
         self.client = mqlight.Client(
             service=mqService,
+            security_options=security_options,
             client_id=mqClient,
             on_state_changed=self.stateChanged,
             on_started=self.started
@@ -33,6 +39,9 @@ class mqlightQueue():
         logger.info("Ready to go!")
         self.ready=True
 
+    def subscribed(self, err, pattern, share):
+        logger.info("Subscried to %s - %s" % (pattern,share))
+
 
     def sendMessage(self, message, topic):
         with self.lock:
@@ -45,19 +54,24 @@ class mqlightQueue():
                 self.thread.wait()
 
     def close(self):
-        logger.info("Closing the connection")
-        self.client.stop()
+        with self.lock:
+            self.thread.clear()
+            logger.info("Closing the connection")
+            self.client.stop()
         # self.thread.exit()
 
-    def stateChanged(self, client, state, message='None'):
+    def stateChanged(self, client, state, message='EMPTY'):
+        logger.info("State changed to %s" % state)
+
         if state == mqlight.ERROR:
-            logger.info("Hit an error %s" % message)
+            logger.info("Hit an error %s - %s" % (message,state))
+            self.ready = False
             self.close()
 
         elif state == mqlight.DRAIN:
+            logger.info("DRAIN")
             self.thread.set()
-        else:
-            logger.info("State changed to %s" % state)
+            
 
 
     def on_sent(self, error, topic, data, options):
@@ -70,15 +84,28 @@ class mqlightQueue():
 
 
     def subscribe(self,topic, callback):
-        myOptions = self.options
+        myOptions = {}
         myOptions['auto_confirm'] = False
-        myOptions['credit'] = 1
+        myOptions['credit'] = 1024
+        myOptions['qos'] = mqlight.QOS_AT_LEAST_ONCE
+        logger.info("BINDING: ")
+
+        logger.info("Subscring to %s" % topic)
+
         self.client.subscribe(
             topic_pattern = topic,
             share = None,
-            options = self.options,
-            on_message=callback
+            options = myOptions,
+            on_message=callback,
+            on_subscribed=self.subscribed
         )
         logger.info("Subscribed to %s" % topic)
+
+    def unsubscribe(self,topic):
+        self.client.unsubscribe(
+            topic_pattern = topic,
+            share = 'domainThing'
+            )
+        logger.info("STOP")
 
 
