@@ -13,8 +13,8 @@ class mqlightQueue():
             'ttl': 999999
         }
         self.ready = False
-        user = "N6KqE6X3MFvV"
-        password = "/B/G%d=j8XT8"
+        user = ""
+        password = ""
         security_options = {}
         security_options['property_user'] = user
         security_options['property_password'] = password
