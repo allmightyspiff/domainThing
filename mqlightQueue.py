@@ -13,8 +13,6 @@ class mqlightQueue():
             'ttl': 999999
         }
         self.ready = False
-        user = "N6KqE6X3MFvV"
-        password = "/B/G%d=j8XT8"
         security_options = {}
         security_options['property_user'] = config.get('rabbitmq','user').__str__()
         security_options['property_password'] = config.get('rabbitmq','password').__str__()
